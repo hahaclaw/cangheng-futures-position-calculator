@@ -6,7 +6,7 @@
   "description": "期货仓位计算器：按文华财经标的名称查询交易单位、一手保证金与风险预算手数。",
   "scripts": {
     "build": "node scripts/build.mjs",
-    "test": "node --test --test-isolation=none tests/*.test.mjs",
+    "test": "node tests/run.mjs",
     "preview": "node scripts/serve.mjs"
   },
   "engines": {
