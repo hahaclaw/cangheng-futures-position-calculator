@@ -137,16 +137,17 @@ function updateSelectionUI(instrument) {
   dom.selectionCode.textContent = instrument.code;
   dom.selectionExchange.textContent = exchange.short;
   dom.selectionName.textContent = instrument.name;
-  dom.selectionNote.textContent =
+  dom.selectionNote.textContent = `主力合约 · ${
     instrument.note ||
-    `1 手 = ${instrument.unit.replace(" /手", "").replace("/手", "")}`;
+    `1 手 = ${instrument.unit.replace(" /手", "").replace("/手", "")}`
+  }`;
   dom.selectionUnit.textContent = instrument.unit;
   dom.selectionQuote.textContent = `报价 ${instrument.quoteUnit}`;
   dom.entryUnit.textContent = instrument.quoteUnit;
   dom.stopUnit.textContent = instrument.quoteUnit;
   dom.unitValue.textContent = instrument.unit;
   dom.multiplierValue.textContent = number(instrument.multiplier);
-  dom.search.placeholder = `已选 ${instrument.name} ${instrument.code} · 输入名称可更换`;
+  dom.search.placeholder = `已选 ${instrument.name} ${instrument.code} 主力 · 输入名称可更换`;
 }
 
 function setQuoteStatus(text, kind = "") {
@@ -202,7 +203,7 @@ function renderCombo(query) {
         <span class="combo-code">${instrument.code}</span>
         <span class="combo-name">
           <strong>${instrument.name}</strong>
-          <small>${EXCHANGES[instrument.exchange].short} · ${instrument.quoteUnit}</small>
+          <small>${EXCHANGES[instrument.exchange].short} · ${instrument.quoteUnit} · 主力</small>
         </span>
         <span class="combo-unit">${instrument.unit}</span>
       `;
@@ -226,7 +227,7 @@ function cancelPendingQuote() {
   state.quoteRequestId += 1;
   dom.quoteButton.disabled = false;
   dom.quoteButton.classList.remove("is-loading");
-  dom.quoteButton.querySelector("span:last-child").textContent = "取主连价";
+  dom.quoteButton.querySelector("span:last-child").textContent = "取主力价";
 }
 
 function selectInstrument(instrument, { resetPrices = true } = {}) {
@@ -243,10 +244,10 @@ function selectInstrument(instrument, { resetPrices = true } = {}) {
     if (resetPrices) {
       dom.entry.value = "";
       dom.stop.value = "";
-      setQuoteStatus("点击“取主连价”或手动输入");
+      setQuoteStatus("点击“取主力价”或手动输入");
     }
   } else if (!dom.entry.value) {
-    setQuoteStatus("点击“取主连价”或手动输入");
+    setQuoteStatus("点击“取主力价”或手动输入");
   }
 
   dom.search.value = "";
@@ -293,9 +294,9 @@ function renderResult(data) {
   if (awaitingPrice) {
     dom.resultSummary.textContent =
       !dom.entry.value && !dom.stop.value
-        ? "输入入场价与止损价，马上算出这单能开几手。"
+        ? "输入主力合约价格与止损价，立即显示一手保证金和可开手数。"
         : !dom.entry.value
-          ? "再输入入场价，就能算出这单能开几手。"
+          ? "再输入主力合约价格，就能显示一手保证金和可开手数。"
           : "再输入止损价，就能算出这单能开几手。";
   } else if (invalid) {
     dom.resultSummary.textContent = data.errors[0] || "请补全计算参数。";
@@ -303,16 +304,18 @@ function renderResult(data) {
     dom.resultSummary.textContent =
       data.warnings[0] || "按当前风险预算，不足 1 手。";
   } else if (data.marginShortfall) {
-    dom.resultSummary.textContent = `按风险公式可开 ${data.lots} 手；但保证金仅够 ${data.marginLots} 手。`;
+    dom.resultSummary.textContent = `按风险公式可开 ${data.lots} 手；但${instrument.name}主力保证金仅够 ${data.marginLots} 手。`;
   } else {
-    dom.resultSummary.textContent = `按 ${number(data.riskPct, 1)}% 风险公式，${instrument.name}可开 ${data.lots} 手。`;
+    dom.resultSummary.textContent = `按 ${number(data.riskPct, 1)}% 风险公式，${instrument.name}主力可开 ${data.lots} 手。`;
   }
 
-  dom.resultMarginPerLot.textContent = data.marginPerLot > 0 ? money(data.marginPerLot) : "—";
+  dom.resultMarginPerLot.textContent =
+    data.marginPerLot > 0 ? money(data.marginPerLot) : "待取价";
+  dom.resultMarginPerLot.classList.toggle("is-placeholder", !(data.marginPerLot > 0));
   dom.resultMarginNote.textContent =
     data.contractValue > 0
-      ? `合约价值 ${money(data.contractValue)} × ${number(data.marginRate * 100, 2)}% 保证金率`
-      : "输入价格后自动计算";
+      ? `主力合约价值 ${money(data.contractValue)} × ${number(data.marginRate * 100, 2)}% 保证金率`
+      : "输入主力合约价格后自动计算";
 
   dom.metricRiskBudget.textContent = data.riskBudget > 0 ? money(data.riskBudget) : "—";
   dom.metricRiskPerLot.textContent = data.riskPerLot > 0 ? money(data.riskPerLot) : "—";
@@ -387,7 +390,7 @@ async function getQuote({ auto = false, silent = false } = {}) {
   dom.quoteButton.disabled = true;
   dom.quoteButton.classList.add("is-loading");
   dom.quoteButton.querySelector("span:last-child").textContent = "取价中";
-  setQuoteStatus(`正在读取 ${instrument.name} 主连行情…${auto ? "（自动）" : ""}`);
+  setQuoteStatus(`正在读取 ${instrument.name} 主力行情…${auto ? "（自动）" : ""}`);
 
   try {
     const quote = await fetchMainQuote(instrument);
@@ -408,12 +411,12 @@ async function getQuote({ auto = false, silent = false } = {}) {
     if (requestId !== state.quoteRequestId || instrument.id !== state.instrument.id) return;
     if (state.priceMode !== "fetching") return;
     setQuoteStatus(`取价失败：${error.message}。请手动输入`, "error");
-    if (!silent) toast("主连行情暂时不可用，请手动输入价格");
+    if (!silent) toast("主力行情暂时不可用，请手动输入价格");
   } finally {
     if (requestId === state.quoteRequestId) {
       dom.quoteButton.disabled = false;
       dom.quoteButton.classList.remove("is-loading");
-      dom.quoteButton.querySelector("span:last-child").textContent = "取主连价";
+      dom.quoteButton.querySelector("span:last-child").textContent = "取主力价";
     }
   }
 }
@@ -428,7 +431,7 @@ function copyResult() {
   const instrument = state.instrument;
   const text = [
     "仓衡 · 期货仓位计算",
-    `标的：${instrument.name} ${instrument.code}（${EXCHANGES[instrument.exchange].short}）`,
+    `标的：${instrument.name} ${instrument.code} 主力合约（${EXCHANGES[instrument.exchange].short}）`,
     `方向：${directionLabel()}`,
     `账户余额：${money(data.balance)}`,
     `单笔风险：${number(data.riskPct, 1)}%（${money(data.riskBudget)}）`,

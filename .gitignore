@@ -5,6 +5,7 @@ dist/
 .tools/
 .chrome-profile/
 .qa/
+.tmp/
 qa-*.png
 screenshot-*.png
 .DS_Store

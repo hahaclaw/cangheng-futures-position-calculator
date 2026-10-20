@@ -1060,6 +1060,14 @@ ul {
   white-space: nowrap;
 }
 
+.selection-tags .tag-primary {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: var(--ink-deep);
+  font-family: var(--font-sans);
+  font-weight: 700;
+}
+
 /* Risk slider and direction */
 
 .risk-field {
@@ -1457,6 +1465,13 @@ input[type="range"]::-moz-range-thumb {
   font-family: var(--font-mono);
   font-size: 24px;
   letter-spacing: -0.04em;
+}
+
+.result-cost strong.is-placeholder {
+  color: var(--sage);
+  font-family: var(--font-sans);
+  font-size: 16px;
+  letter-spacing: 0;
 }
 
 .result-cost small {

@@ -6,7 +6,7 @@
     <title>仓衡 · 期货仓位计算器｜交易单位、一手保证金、可开手数</title>
     <meta
       name="description"
-      content="输入文华财经里的期货标的名称或代码，自动查询交易单位、合约乘数与一手保证金，并按账户余额和单笔风险比例计算可交易手数。"
+      content="只交易主力合约。输入文华财经里的期货标的名称或代码，自动匹配主力合约的交易单位、一手需要支付的保证金，并按账户余额和单笔风险比例计算可开手数。"
     />
     <meta name="theme-color" content="#10251d" />
     <link rel="canonical" href="https://hahaclaw.github.io/cangheng-futures-position-calculator/" />
@@ -15,7 +15,7 @@
     <meta property="og:title" content="仓衡 · 期货仓位计算器" />
     <meta
       property="og:description"
-      content="先算风险，再算手数。支持 88 个境内期货品种，自动匹配交易单位、一手保证金与风险预算手数。"
+      content="只交易主力合约。支持 88 个境内期货品种，自动匹配交易单位、一手保证金与风险预算手数。"
     />
     <meta property="og:image" content="https://hahaclaw.github.io/cangheng-futures-position-calculator/assets/og.png" />
     <meta property="og:image:width" content="1200" />
@@ -23,7 +23,7 @@
     <meta property="og:image:alt" content="仓衡期货仓位计算器：先算风险，再算手数。" />
     <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:title" content="仓衡 · 期货仓位计算器" />
-    <meta name="twitter:description" content="输入标的名称，算清交易单位、一手保证金与可开手数。" />
+    <meta name="twitter:description" content="只交易主力合约。输入标的名称，算清交易单位、一手保证金与可开手数。" />
     <meta name="twitter:image" content="https://hahaclaw.github.io/cangheng-futures-position-calculator/assets/og.png" />
     <link rel="icon" href="./assets/favicon.svg" type="image/svg+xml" />
     <link rel="stylesheet" href="./assets/styles.css" />
@@ -155,7 +155,7 @@
             <div class="field field-search">
               <label for="instrument-search">
                 交易标的
-                <span class="label-hint">名称、代码或合约均可</span>
+                <span class="label-hint">只交易主力合约，自动匹配主连</span>
               </label>
               <div class="combobox" id="instrument-combobox">
                 <span class="combobox-icon" aria-hidden="true">
@@ -175,7 +175,7 @@
                   aria-activedescendant=""
                   autocomplete="off"
                   spellcheck="false"
-                  placeholder="例如：豆粕、M、螺纹钢、IF2601"
+                  placeholder="例如：棕榈油2701、P、螺纹钢、IF2601"
                 />
                 <span class="combobox-kbd" aria-hidden="true">品种</span>
                 <div class="combobox-results" id="instrument-results" role="listbox" hidden></div>
@@ -190,6 +190,7 @@
                   <span id="selected-note">1 手 = 10 吨</span>
                 </div>
                 <div class="selection-tags">
+                  <span class="tag-primary" id="selected-contract">主力合约</span>
                   <span id="selected-unit">10 吨/手</span>
                   <span id="selected-quote">元/吨</span>
                 </div>
@@ -254,7 +255,7 @@
                   <label for="entry">入场价格</label>
                   <button class="quote-button" id="fetch-quote" type="button">
                     <span class="quote-dot" aria-hidden="true"></span>
-                    取主连价
+                    取主力价
                   </button>
                 </div>
                 <div class="input-shell">
@@ -296,7 +297,7 @@
             <div class="result-head">
               <div>
                 <span class="panel-step panel-step-light">02</span>
-                <h3>计算结果</h3>
+                <h3>主力合约结果</h3>
               </div>
               <button class="copy-button" id="copy-result" type="button" title="复制计算明细">
                 <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
@@ -313,15 +314,15 @@
                 <strong id="result-lots">5</strong>
                 <span>手</span>
               </div>
-              <p class="result-summary" id="result-summary">在 2% 风险预算内，豆粕可开 5 手。</p>
+              <p class="result-summary" id="result-summary">按 2% 风险公式，豆粕主力可开 5 手。</p>
             </div>
 
             <div class="result-cost">
               <div>
-                <span>一手需要多少钱</span>
+                <span>主力合约一手需要支付</span>
                 <strong id="result-margin-per-lot">¥3,250</strong>
               </div>
-              <small id="result-margin-note">合约价值 ¥32,500 × 10% 保证金率</small>
+              <small id="result-margin-note">按主力合约价格 × 交易单位 × 保证金率估算</small>
             </div>
 
             <dl class="result-metrics">
@@ -371,8 +372,8 @@
                 <code id="formula-risk-lot">|3,250 − 3,230| × 10 = ¥200</code>
               </div>
               <div class="formula-line formula-line-final">
-                <span>建议手数</span>
-                <code id="formula-final">min(5, 15) = 5 手</code>
+                <span>公式手数</span>
+                <code id="formula-final">¥1,000 ÷ ¥200 = 5 手</code>
               </div>
             </div>
 
