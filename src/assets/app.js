@@ -84,11 +84,13 @@ const integerFormatter = new Intl.NumberFormat("zh-CN", {
 
 function money(value) {
   if (!Number.isFinite(value)) return "—";
-  const hasCents = Math.abs(value - Math.round(value)) > 0.005;
-  return `¥${new Intl.NumberFormat("zh-CN", {
+  const absolute = Math.abs(value);
+  const hasCents = Math.abs(absolute - Math.round(absolute)) > 0.005;
+  const formatted = new Intl.NumberFormat("zh-CN", {
     minimumFractionDigits: hasCents ? 2 : 0,
     maximumFractionDigits: 2,
-  }).format(value)}`;
+  }).format(absolute);
+  return `${value < 0 ? "-" : ""}¥${formatted}`;
 }
 
 function number(value, decimals = 0) {
@@ -299,13 +301,11 @@ function renderResult(data) {
     dom.resultSummary.textContent = data.errors[0] || "请补全计算参数。";
   } else if (data.lots === 0) {
     dom.resultSummary.textContent =
-      data.warnings[0] || "按当前参数，账户余额不足以覆盖 1 手保证金。";
-  } else if (data.limitingFactor === "margin") {
-    dom.resultSummary.textContent = `保证金上限先到，${instrument.name}最多可开 ${data.lots} 手。`;
-  } else if (data.limitingFactor === "both") {
-    dom.resultSummary.textContent = `风险预算与保证金上限同时约束，${instrument.name}可开 ${data.lots} 手。`;
+      data.warnings[0] || "按当前风险预算，不足 1 手。";
+  } else if (data.marginShortfall) {
+    dom.resultSummary.textContent = `按风险公式可开 ${data.lots} 手；但保证金仅够 ${data.marginLots} 手。`;
   } else {
-    dom.resultSummary.textContent = `在 ${number(data.riskPct, 1)}% 风险预算内，${instrument.name}可开 ${data.lots} 手。`;
+    dom.resultSummary.textContent = `按 ${number(data.riskPct, 1)}% 风险公式，${instrument.name}可开 ${data.lots} 手。`;
   }
 
   dom.resultMarginPerLot.textContent = data.marginPerLot > 0 ? money(data.marginPerLot) : "—";
@@ -322,30 +322,30 @@ function renderResult(data) {
   dom.metricMarginLots.textContent = data.marginPerLot > 0 ? `${data.marginLots} 手` : "—";
   dom.metricRiskLots.textContent = data.riskPerLot > 0 ? `${data.riskLots} 手` : "—";
 
-  const limiterText = {
-    risk: "由风险预算约束",
-    margin: "由保证金上限约束",
-    both: "风险与保证金同时约束",
-    none: "—",
-  };
   dom.metricLimiter.textContent = data.isValid
-    ? limiterText[data.limitingFactor]
+    ? data.marginShortfall
+      ? "保证金不足，需降手数"
+      : "保证金充足"
     : awaitingPrice
       ? "待输入价格"
       : "待修正参数";
 
-  const usage = data.isValid ? Math.min(100, Math.max(0, data.marginUsagePct)) : 0;
+  const usage = data.isValid ? Math.max(0, data.marginUsagePct) : 0;
+  const barWidth = Math.min(100, usage);
   dom.exposureValue.textContent = percent(usage);
-  dom.exposureBar.style.width = `${usage}%`;
+  dom.exposureValue.classList.toggle("is-over", usage > 100);
+  dom.exposureBar.style.width = `${barWidth}%`;
   dom.exposureBar.classList.toggle("is-high", usage >= 50);
 
   dom.formulaRisk.textContent = `${number(data.balance)} × ${number(data.riskPct, 1)}% = ${money(data.riskBudget)}`;
+  const highPrice = Math.max(data.entry, data.stop);
+  const lowPrice = Math.min(data.entry, data.stop);
   dom.formulaRiskLot.textContent =
     data.riskPerLot > 0
-      ? `|${priceText(data.entry)} − ${priceText(data.stop)}| × ${number(data.multiplier)} = ${money(data.riskPerLot)}`
+      ? `(${priceText(highPrice)} − ${priceText(lowPrice)}) × ${number(data.multiplier)} = ${money(data.riskPerLot)}`
       : "输入有效的入场价与止损价";
   dom.formulaFinal.textContent = data.isValid
-    ? `min(${data.riskLots}, ${data.marginLots}) = ${data.lots} 手`
+    ? `${money(data.riskBudget)} ÷ ${money(data.riskPerLot)} = ${data.lots} 手`
     : awaitingPrice
       ? "输入价格后计算"
       : "—";
@@ -436,8 +436,10 @@ function copyResult() {
     `交易单位：${instrument.unit}；合约乘数：${number(data.multiplier)}`,
     `合约价值 / 手：${money(data.contractValue)}`,
     `保证金率：${number(data.marginRate * 100, 2)}%；一手保证金：${money(data.marginPerLot)}`,
-    `每手风险：${money(data.riskPerLot)}；风险手数：${data.riskLots}；保证金手数：${data.marginLots}`,
-    `建议开仓：${data.lots} 手；占用保证金：${money(data.usedMargin)}；剩余可用：${money(data.remaining)}`,
+    `每手风险：${money(data.riskPerLot)}；按图公式手数：${data.riskLots}；保证金可覆盖：${data.marginLots} 手`,
+    data.marginShortfall
+      ? `公式结果：${data.lots} 手；但保证金不足，实际应降至 ${data.marginLots} 手或增加保证金。`
+      : `公式结果：${data.lots} 手；占用保证金：${money(data.usedMargin)}；剩余可用：${money(data.remaining)}`,
     "",
     `参数基准：${DATA_AS_OF}，保证金请以期货公司实际标准为准。`,
   ].join("\n");
