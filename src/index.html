@@ -9,12 +9,22 @@
       content="输入文华财经里的期货标的名称或代码，自动查询交易单位、合约乘数与一手保证金，并按账户余额和单笔风险比例计算可交易手数。"
     />
     <meta name="theme-color" content="#10251d" />
+    <link rel="canonical" href="https://hahaclaw.github.io/cangheng-futures-position-calculator/" />
     <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://hahaclaw.github.io/cangheng-futures-position-calculator/" />
     <meta property="og:title" content="仓衡 · 期货仓位计算器" />
     <meta
       property="og:description"
       content="先算风险，再算手数。支持 88 个境内期货品种，自动匹配交易单位、一手保证金与风险预算手数。"
     />
+    <meta property="og:image" content="https://hahaclaw.github.io/cangheng-futures-position-calculator/assets/og.png" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:image:alt" content="仓衡期货仓位计算器：先算风险，再算手数。" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="仓衡 · 期货仓位计算器" />
+    <meta name="twitter:description" content="输入标的名称，算清交易单位、一手保证金与可开手数。" />
+    <meta name="twitter:image" content="https://hahaclaw.github.io/cangheng-futures-position-calculator/assets/og.png" />
     <link rel="icon" href="./assets/favicon.svg" type="image/svg+xml" />
     <link rel="stylesheet" href="./assets/styles.css" />
   </head>
@@ -229,7 +239,7 @@
             </div>
 
             <div class="field direction-field">
-              <span class="field-label">交易方向</span>
+              <span class="field-label">交易方向 <small class="label-hint">仅标注，不参与公式</small></span>
               <div class="segmented" role="group" aria-label="交易方向">
                 <input type="radio" name="direction" id="direction-long" value="long" checked />
                 <label for="direction-long">做多 <span>Long</span></label>
@@ -260,7 +270,7 @@
                   <input id="stop" name="stop" type="number" inputmode="decimal" min="0" step="any" value="3230" />
                   <span class="input-suffix" id="stop-unit">元/吨</span>
                 </div>
-                <span class="field-help">做多时止损低于入场；做空时高于入场</span>
+                <span class="field-help">自动取“高价 − 低价”，无需区分先后</span>
               </div>
             </div>
 
@@ -298,7 +308,7 @@
             </div>
 
             <div class="result-main" id="result-main">
-              <p class="result-label">本单建议开仓</p>
+              <p class="result-label">按风险公式可开</p>
               <div class="result-number">
                 <strong id="result-lots">5</strong>
                 <span>手</span>
@@ -383,7 +393,7 @@
             <h2>不是拍脑袋，是三道算术题。</h2>
           </div>
           <p class="section-note">
-            沿用参考图的固定比例风险法，再加一道保证金约束，避免“算得下、开不起”。
+            沿用参考图的固定比例风险法，再单独核对保证金，避免“算得下、开不起”。
           </p>
         </div>
 
@@ -399,24 +409,24 @@
             <span class="method-index">02</span>
             <h3>再算每手风险</h3>
             <p>入场到止损的距离，乘以合约乘数，就是一手打止损会亏的钱。</p>
-            <code class="method-formula">|入场 − 止损| × 乘数</code>
-            <span class="method-example">|3,250 − 3,230| × 10 = ¥200</span>
+            <code class="method-formula">(最高价 − 最低价) × 乘数</code>
+            <span class="method-example">(3,250 − 3,230) × 10 = ¥200</span>
           </article>
           <article class="method-card method-card-accent">
             <span class="method-index">03</span>
-            <h3>最后取较小值</h3>
-            <p>风险预算能覆盖几手，保证金又能覆盖几手，取两者中更小的一个。</p>
-            <code class="method-formula">min(风险手数, 保证金手数)</code>
-            <span class="method-example">min(5, 15) = 5 手</span>
+            <h3>再核对保证金</h3>
+            <p>公式算出手数后，用余额除以一手保证金，确认账户是否真的开得起；不悄悄改小公式结果。</p>
+            <code class="method-formula">价格 × 乘数 × 保证金率</code>
+            <span class="method-example">3,250 × 10 × 10% = ¥3,250 / 手</span>
           </article>
         </div>
 
         <div class="method-callout">
           <div class="callout-icon" aria-hidden="true">!</div>
           <div>
-            <strong>为什么要叠加保证金约束？</strong>
+            <strong>公式手数和保证金手数分开展示</strong>
             <p>
-              固定比例风险法只回答“亏得起几手”，不回答“保证金够不够”。当账户余额较小、保证金率较高时，保证金上限可能先到。本站的建议手数取两者最小值，并单独展示两个上限。
+              参考图的固定比例风险法回答“亏得起几手”，保证金回答“账户开不开得起”。主结果严格按公式计算；如果保证金只够更少的手数，页面会单独提示可执行手数与资金缺口，避免把两个概念混在一起。
             </p>
           </div>
         </div>
