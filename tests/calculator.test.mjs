@@ -41,7 +41,7 @@ test("手数向下取整，不四舍五入", () => {
   assert.equal(result.lots, 5);
 });
 
-test("保证金不足时，由保证金上限限制手数", () => {
+test("保证金不足时保留公式手数，并单独标记保证金缺口", () => {
   const result = calculatePosition({
     ...base,
     balance: 10_000,
@@ -54,15 +54,18 @@ test("保证金不足时，由保证金上限限制手数", () => {
   assert.equal(result.isValid, true);
   assert.equal(result.riskLots, 5);
   assert.equal(result.marginLots, 3);
-  assert.equal(result.lots, 3);
-  assert.equal(result.limitingFactor, "margin");
-  assert.equal(result.warnings.length, 1);
+  assert.equal(result.lots, 5);
+  assert.equal(result.affordableLots, 3);
+  assert.equal(result.marginShortfall, true);
+  assert.equal(result.usedMargin, 15_000);
+  assert.equal(result.remaining, -5_000);
+  assert.match(result.warnings[0], /保证金仅够 3 手/);
 });
 
-test("账户余额不足一手保证金时，建议 0 手并给出提示", () => {
+test("账户余额不足一手保证金时，公式手数仍展示并给出强提示", () => {
   const result = calculatePosition({
     ...base,
-    balance: 1_000,
+    balance: 5_000,
     riskPct: 10,
     entry: 3_000,
     stop: 2_990,
@@ -71,8 +74,10 @@ test("账户余额不足一手保证金时，建议 0 手并给出提示", () =>
 
   assert.equal(result.isValid, true);
   assert.equal(result.marginLots, 0);
-  assert.equal(result.lots, 0);
-  assert.match(result.warnings[0], /保证金/);
+  assert.equal(result.lots, 5);
+  assert.equal(result.affordableLots, 0);
+  assert.equal(result.marginShortfall, true);
+  assert.match(result.warnings[0], /不足以覆盖 1 手保证金/);
 });
 
 test("风险预算不足一手时，建议 0 手并计算所需风险比例", () => {
@@ -93,13 +98,14 @@ test("风险预算不足一手时，建议 0 手并计算所需风险比例", ()
   assert.match(result.warnings[0], /2\.00%/);
 });
 
-test("做多时止损高于入场价会报错", () => {
-  const result = calculatePosition({ ...base, stop: 3_260 });
+test("入场价低于止损价时，按“最高价 − 最低价”计算并提示方向", () => {
+  const result = calculatePosition({ ...base, entry: 3_230, stop: 3_250 });
 
-  assert.equal(result.isValid, false);
+  assert.equal(result.isValid, true);
   assert.equal(result.directionOk, false);
-  assert.equal(result.lots, 0);
-  assert.match(result.errors.join(""), /做多/);
+  assert.equal(result.riskPerLot, 200);
+  assert.equal(result.lots, 5);
+  assert.match(result.warnings.join(""), /高价 − 低价/);
 });
 
 test("做空方向使用相同的绝对价格距离", () => {
@@ -115,11 +121,13 @@ test("做空方向使用相同的绝对价格距离", () => {
   assert.equal(result.lots, 5);
 });
 
-test("做空时止损低于入场价会报错", () => {
+test("做空方向与止损位置不一致时仍按绝对价差计算", () => {
   const result = calculatePosition({ ...base, entry: 3_250, stop: 3_230, direction: "short" });
 
-  assert.equal(result.isValid, false);
-  assert.match(result.errors.join(""), /做空/);
+  assert.equal(result.isValid, true);
+  assert.equal(result.directionOk, false);
+  assert.equal(result.lots, 5);
+  assert.match(result.warnings.join(""), /方向/);
 });
 
 test("零价格、零余额与非法保证金率会被拦截", () => {
