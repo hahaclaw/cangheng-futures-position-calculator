@@ -1,0 +1,507 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>仓衡 · 期货仓位计算器｜交易单位、一手保证金、可开手数</title>
+    <meta
+      name="description"
+      content="输入文华财经里的期货标的名称或代码，自动查询交易单位、合约乘数与一手保证金，并按账户余额和单笔风险比例计算可交易手数。"
+    />
+    <meta name="theme-color" content="#10251d" />
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="仓衡 · 期货仓位计算器" />
+    <meta
+      property="og:description"
+      content="先算风险，再算手数。支持 88 个境内期货品种，自动匹配交易单位、一手保证金与风险预算手数。"
+    />
+    <link rel="icon" href="./assets/favicon.svg" type="image/svg+xml" />
+    <link rel="stylesheet" href="./assets/styles.css" />
+  </head>
+  <body>
+    <a class="skip-link" href="#calculator">跳到计算器</a>
+
+    <header class="site-header">
+      <a class="brand" href="#top" aria-label="仓衡首页">
+        <span class="brand-mark" aria-hidden="true">仓</span>
+        <span class="brand-copy">
+          <strong>仓衡</strong>
+          <small>FUTURES POSITION LAB</small>
+        </span>
+      </a>
+      <nav class="site-nav" aria-label="主导航">
+        <a href="#calculator">计算器</a>
+        <a href="#method">算法</a>
+        <a href="#instruments">品种库</a>
+      </nav>
+      <a class="header-action" href="#calculator">
+        开始计算
+        <span aria-hidden="true">↘</span>
+      </a>
+    </header>
+
+    <main id="top">
+      <section class="hero">
+        <div class="hero-grid" aria-hidden="true"></div>
+        <div class="hero-inner">
+          <div class="hero-copy">
+            <p class="eyebrow reveal">
+              <span class="eyebrow-dot"></span>
+              中国境内期货 · 仓位计算工具
+            </p>
+            <h1 class="reveal delay-1">
+              先算风险，<br />
+              <span>再算手数。</span>
+            </h1>
+            <p class="hero-lede reveal delay-2">
+              输入文华财经里的交易标的，自动识别交易单位与保证金，再按账户余额和单笔风险预算，给出这单该开几手。
+            </p>
+            <div class="hero-actions reveal delay-3">
+              <a class="button button-primary" href="#calculator">
+                开始计算
+                <span aria-hidden="true">→</span>
+              </a>
+              <a class="button button-quiet" href="#method">看看怎么算的</a>
+            </div>
+            <dl class="hero-stats reveal delay-4">
+              <div>
+                <dt>88</dt>
+                <dd>境内期货品种</dd>
+              </div>
+              <div>
+                <dt>6</dt>
+                <dd>期货交易所</dd>
+              </div>
+              <div>
+                <dt>2%</dt>
+                <dd>默认单笔风险</dd>
+              </div>
+            </dl>
+          </div>
+
+          <div class="hero-ticket reveal delay-2" aria-label="豆粕仓位计算示例">
+            <div class="ticket-top">
+              <span>EXAMPLE / 参考图示例</span>
+              <span class="ticket-badge">算一遍</span>
+            </div>
+            <div class="ticket-symbol">
+              <div>
+                <span class="ticket-code">M</span>
+                <span class="ticket-market">大商所 · 豆粕</span>
+              </div>
+              <span class="ticket-unit">10 吨 / 手</span>
+            </div>
+            <div class="ticket-inputs">
+              <div><span>账户余额</span><strong>¥50,000</strong></div>
+              <div><span>单笔风险</span><strong>2%</strong></div>
+              <div><span>入场价格</span><strong>3,250</strong></div>
+              <div><span>止损价格</span><strong>3,230</strong></div>
+            </div>
+            <div class="ticket-equation">
+              <div>
+                <span>风险预算</span>
+                <code>¥1,000</code>
+              </div>
+              <span class="ticket-op">÷</span>
+              <div>
+                <span>每手风险</span>
+                <code>¥200</code>
+              </div>
+            </div>
+            <div class="ticket-result">
+              <span>最佳合约数</span>
+              <strong>5<small>手</small></strong>
+            </div>
+            <p class="ticket-footnote">50,000 × 2% ÷ [(3,250 − 3,230) × 10]</p>
+          </div>
+        </div>
+        <div class="hero-marquee" aria-hidden="true">
+          <span>TRADE THE PLAN</span><i></i><span>NOT THE FEELING</span><i></i>
+          <span>RISK FIRST</span><i></i><span>仓位有据</span>
+        </div>
+      </section>
+
+      <section class="calculator-section" id="calculator">
+        <div class="section-heading">
+          <div>
+            <p class="section-kicker">01 / POSITION SIZER</p>
+            <h2>这笔交易，该开几手？</h2>
+          </div>
+          <p class="section-note">
+            参数改动会实时重算。保证金为估算值，不含交易手续费。
+          </p>
+        </div>
+
+        <div class="calculator-layout">
+          <form class="panel form-panel" id="position-form" novalidate>
+            <div class="panel-head">
+              <div>
+                <span class="panel-step">01</span>
+                <h3>设置这笔交易</h3>
+              </div>
+              <button class="text-button" type="button" id="load-example">载入示例</button>
+            </div>
+
+            <div class="field field-search">
+              <label for="instrument-search">
+                交易标的
+                <span class="label-hint">名称、代码或合约均可</span>
+              </label>
+              <div class="combobox" id="instrument-combobox">
+                <span class="combobox-icon" aria-hidden="true">
+                  <svg viewBox="0 0 24 24" fill="none">
+                    <circle cx="10.8" cy="10.8" r="6.3" stroke="currentColor" stroke-width="1.8" />
+                    <path d="m15.5 15.5 4 4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" />
+                  </svg>
+                </span>
+                <input
+                  id="instrument-search"
+                  type="text"
+                  role="combobox"
+                  aria-autocomplete="list"
+                  aria-haspopup="listbox"
+                  aria-expanded="false"
+                  aria-controls="instrument-results"
+                  aria-activedescendant=""
+                  autocomplete="off"
+                  spellcheck="false"
+                  placeholder="例如：豆粕、M、螺纹钢、IF2601"
+                />
+                <span class="combobox-kbd" aria-hidden="true">品种</span>
+                <div class="combobox-results" id="instrument-results" role="listbox" hidden></div>
+              </div>
+              <div class="selection-card" id="selection-card">
+                <div class="selection-code">
+                  <strong id="selected-code">M</strong>
+                  <span id="selected-exchange">大商所</span>
+                </div>
+                <div class="selection-main">
+                  <strong id="selected-name">豆粕</strong>
+                  <span id="selected-note">1 手 = 10 吨</span>
+                </div>
+                <div class="selection-tags">
+                  <span id="selected-unit">10 吨/手</span>
+                  <span id="selected-quote">元/吨</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="field-grid">
+              <div class="field">
+                <label for="balance">账户余额</label>
+                <div class="input-shell">
+                  <span class="input-prefix">¥</span>
+                  <input
+                    id="balance"
+                    name="balance"
+                    type="number"
+                    inputmode="decimal"
+                    min="0"
+                    step="100"
+                    value="50000"
+                    aria-describedby="balance-help"
+                  />
+                  <span class="input-suffix">元</span>
+                </div>
+                <span class="field-help" id="balance-help">用于计算风险预算与保证金上限</span>
+              </div>
+
+              <div class="field">
+                <label for="margin-rate">保证金率</label>
+                <div class="input-shell">
+                  <input id="margin-rate" name="marginRate" type="number" inputmode="decimal" min="0" max="100" step="0.5" value="10" />
+                  <span class="input-suffix">%</span>
+                </div>
+                <span class="field-help">默认参考值，请按期货公司实际标准调整</span>
+              </div>
+            </div>
+
+            <div class="field risk-field">
+              <div class="label-row">
+                <label for="risk">单笔风险</label>
+                <output class="risk-output" id="risk-output" for="risk">2.0%</output>
+              </div>
+              <input id="risk" name="riskPct" type="range" min="0.5" max="10" step="0.5" value="2" />
+              <div class="range-labels" aria-hidden="true">
+                <span>0.5%</span><span>3%</span><span>5%</span><span>10%</span>
+              </div>
+              <span class="field-help">只拿账户余额的一小部分去冒险，通常建议 1%–2%</span>
+            </div>
+
+            <div class="field direction-field">
+              <span class="field-label">交易方向</span>
+              <div class="segmented" role="group" aria-label="交易方向">
+                <input type="radio" name="direction" id="direction-long" value="long" checked />
+                <label for="direction-long">做多 <span>Long</span></label>
+                <input type="radio" name="direction" id="direction-short" value="short" />
+                <label for="direction-short">做空 <span>Short</span></label>
+              </div>
+            </div>
+
+            <div class="field-grid price-grid">
+              <div class="field">
+                <div class="label-row">
+                  <label for="entry">入场价格</label>
+                  <button class="quote-button" id="fetch-quote" type="button">
+                    <span class="quote-dot" aria-hidden="true"></span>
+                    取主连价
+                  </button>
+                </div>
+                <div class="input-shell">
+                  <input id="entry" name="entry" type="number" inputmode="decimal" min="0" step="any" value="3250" />
+                  <span class="input-suffix" id="entry-unit">元/吨</span>
+                </div>
+                <span class="field-help quote-status" id="quote-status" role="status" aria-live="polite">示例价格，可手动修改</span>
+              </div>
+
+              <div class="field">
+                <label for="stop">止损价格</label>
+                <div class="input-shell">
+                  <input id="stop" name="stop" type="number" inputmode="decimal" min="0" step="any" value="3230" />
+                  <span class="input-suffix" id="stop-unit">元/吨</span>
+                </div>
+                <span class="field-help">做多时止损低于入场；做空时高于入场</span>
+              </div>
+            </div>
+
+            <div class="unit-strip">
+              <span>交易单位</span>
+              <strong id="unit-value">10 吨/手</strong>
+              <span class="unit-strip-divider"></span>
+              <span>合约乘数</span>
+              <strong id="multiplier-value">10</strong>
+              <span class="unit-strip-note">自动识别</span>
+            </div>
+
+            <button class="button button-calculate" type="submit" id="calculate-button">
+              <span>自动计算</span>
+              <span class="button-arrow" aria-hidden="true">→</span>
+            </button>
+            <p class="form-footnote">
+              结果仅用于仓位规划，不构成投资建议。交易前请核对合约规则与期货公司保证金。
+            </p>
+          </form>
+
+          <aside class="panel result-panel" id="result-panel" aria-live="polite">
+            <div class="result-head">
+              <div>
+                <span class="panel-step panel-step-light">02</span>
+                <h3>计算结果</h3>
+              </div>
+              <button class="copy-button" id="copy-result" type="button" title="复制计算明细">
+                <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                  <rect x="8.5" y="8.5" width="10" height="11" rx="1.6" stroke="currentColor" stroke-width="1.6" />
+                  <path d="M15.5 8.5V6.8c0-.9-.7-1.6-1.6-1.6H6.8c-.9 0-1.6.7-1.6 1.6v7.1c0 .9.7 1.6 1.6 1.6h1.7" stroke="currentColor" stroke-width="1.6" />
+                </svg>
+                复制
+              </button>
+            </div>
+
+            <div class="result-main" id="result-main">
+              <p class="result-label">本单建议开仓</p>
+              <div class="result-number">
+                <strong id="result-lots">5</strong>
+                <span>手</span>
+              </div>
+              <p class="result-summary" id="result-summary">在 2% 风险预算内，豆粕可开 5 手。</p>
+            </div>
+
+            <div class="result-cost">
+              <div>
+                <span>一手需要多少钱</span>
+                <strong id="result-margin-per-lot">¥3,250</strong>
+              </div>
+              <small id="result-margin-note">合约价值 ¥32,500 × 10% 保证金率</small>
+            </div>
+
+            <dl class="result-metrics">
+              <div>
+                <dt>风险预算</dt>
+                <dd id="metric-risk-budget">¥1,000</dd>
+              </div>
+              <div>
+                <dt>每手风险</dt>
+                <dd id="metric-risk-per-lot">¥200</dd>
+              </div>
+              <div>
+                <dt>合约价值 / 手</dt>
+                <dd id="metric-contract-value">¥32,500</dd>
+              </div>
+              <div>
+                <dt>占用保证金</dt>
+                <dd id="metric-used-margin">¥16,250</dd>
+              </div>
+            </dl>
+
+            <div class="exposure">
+              <div class="exposure-head">
+                <span>保证金占用</span>
+                <strong id="exposure-value">32.5%</strong>
+              </div>
+              <div class="exposure-track" aria-hidden="true">
+                <span id="exposure-bar" style="width: 32.5%"></span>
+              </div>
+              <div class="exposure-foot">
+                <span>剩余可用 <b id="metric-remaining">¥33,750</b></span>
+                <span id="metric-limiter">由风险预算约束</span>
+              </div>
+            </div>
+
+            <div class="formula-card">
+              <div class="formula-card-head">
+                <span>计算过程</span>
+                <span class="formula-tag">⌊ ⌋ 向下取整</span>
+              </div>
+              <div class="formula-line">
+                <span>风险预算</span>
+                <code id="formula-risk">50,000 × 2% = ¥1,000</code>
+              </div>
+              <div class="formula-line">
+                <span>每手风险</span>
+                <code id="formula-risk-lot">|3,250 − 3,230| × 10 = ¥200</code>
+              </div>
+              <div class="formula-line formula-line-final">
+                <span>建议手数</span>
+                <code id="formula-final">min(5, 15) = 5 手</code>
+              </div>
+            </div>
+
+            <div class="result-warning" id="result-warning" hidden></div>
+
+            <div class="result-foot">
+              <span>保证金手数上限 <b id="metric-margin-lots">15 手</b></span>
+              <span>风险手数上限 <b id="metric-risk-lots">5 手</b></span>
+            </div>
+          </aside>
+        </div>
+      </section>
+
+      <section class="method-section" id="method">
+        <div class="section-heading">
+          <div>
+            <p class="section-kicker">02 / THE MATH</p>
+            <h2>不是拍脑袋，是三道算术题。</h2>
+          </div>
+          <p class="section-note">
+            沿用参考图的固定比例风险法，再加一道保证金约束，避免“算得下、开不起”。
+          </p>
+        </div>
+
+        <div class="method-grid">
+          <article class="method-card">
+            <span class="method-index">01</span>
+            <h3>先定风险预算</h3>
+            <p>这笔交易最多亏多少钱？用账户余额乘以单笔风险比例。</p>
+            <code class="method-formula">余额 × 风险%</code>
+            <span class="method-example">50,000 × 2% = ¥1,000</span>
+          </article>
+          <article class="method-card">
+            <span class="method-index">02</span>
+            <h3>再算每手风险</h3>
+            <p>入场到止损的距离，乘以合约乘数，就是一手打止损会亏的钱。</p>
+            <code class="method-formula">|入场 − 止损| × 乘数</code>
+            <span class="method-example">|3,250 − 3,230| × 10 = ¥200</span>
+          </article>
+          <article class="method-card method-card-accent">
+            <span class="method-index">03</span>
+            <h3>最后取较小值</h3>
+            <p>风险预算能覆盖几手，保证金又能覆盖几手，取两者中更小的一个。</p>
+            <code class="method-formula">min(风险手数, 保证金手数)</code>
+            <span class="method-example">min(5, 15) = 5 手</span>
+          </article>
+        </div>
+
+        <div class="method-callout">
+          <div class="callout-icon" aria-hidden="true">!</div>
+          <div>
+            <strong>为什么要叠加保证金约束？</strong>
+            <p>
+              固定比例风险法只回答“亏得起几手”，不回答“保证金够不够”。当账户余额较小、保证金率较高时，保证金上限可能先到。本站的建议手数取两者最小值，并单独展示两个上限。
+            </p>
+          </div>
+        </div>
+      </section>
+
+      <section class="library-section" id="instruments">
+        <div class="section-heading">
+          <div>
+            <p class="section-kicker">03 / INSTRUMENT LIBRARY</p>
+            <h2>88 个品种，一查就有。</h2>
+          </div>
+          <p class="section-note">
+            覆盖上期所、大商所、郑商所、中金所、上期能源与广期所。点击“带入”即可开始计算。
+          </p>
+        </div>
+
+        <div class="library-toolbar">
+          <div class="library-search">
+            <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+              <circle cx="10.8" cy="10.8" r="6.3" stroke="currentColor" stroke-width="1.8" />
+              <path d="m15.5 15.5 4 4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" />
+            </svg>
+            <input id="library-filter" type="search" placeholder="筛选品种、代码或别名" autocomplete="off" />
+          </div>
+          <div class="exchange-filters" id="exchange-filters" role="group" aria-label="按交易所筛选">
+            <button class="filter-chip is-active" type="button" data-exchange="all">全部</button>
+            <button class="filter-chip" type="button" data-exchange="SHFE">上期所</button>
+            <button class="filter-chip" type="button" data-exchange="DCE">大商所</button>
+            <button class="filter-chip" type="button" data-exchange="CZCE">郑商所</button>
+            <button class="filter-chip" type="button" data-exchange="CFFEX">中金所</button>
+            <button class="filter-chip" type="button" data-exchange="INE">上期能源</button>
+            <button class="filter-chip" type="button" data-exchange="GFEX">广期所</button>
+          </div>
+          <span class="library-count" id="library-count">共 88 个品种</span>
+        </div>
+
+        <p class="table-scroll-hint">左右滑动查看完整表格 →</p>
+        <div class="table-shell">
+          <table class="instrument-table">
+            <thead>
+              <tr>
+                <th scope="col">品种</th>
+                <th scope="col">代码</th>
+                <th scope="col">交易所</th>
+                <th scope="col">交易单位</th>
+                <th scope="col">报价单位</th>
+                <th scope="col" class="num-col">参考保证金</th>
+                <th scope="col"><span class="sr-only">操作</span></th>
+              </tr>
+            </thead>
+            <tbody id="instrument-tbody"></tbody>
+          </table>
+          <p class="table-empty" id="table-empty" hidden>没有匹配的品种，试试“豆粕”“M”或“螺纹”。</p>
+        </div>
+
+        <p class="data-note">
+          合约单位与报价单位依据交易所合约规则；保证金率为期货公司公示口径的参考值（数据基准日
+          <time datetime="2026-10-12">2026-10-12</time>），会随行情和合约月份调整。实际标准请以开户期货公司为准。
+        </p>
+      </section>
+    </main>
+
+    <footer class="site-footer">
+      <div class="footer-top">
+        <div class="footer-brand">
+          <span class="brand-mark" aria-hidden="true">仓</span>
+          <div>
+            <strong>仓衡</strong>
+            <p>把仓位算清楚，再把手按下去。</p>
+          </div>
+        </div>
+        <p class="footer-disclaimer">
+          本站是仓位规划工具，不构成任何投资建议。期货交易有杠杆，可能损失全部本金。请独立判断并做好风险控制。
+        </p>
+      </div>
+      <div class="footer-bottom">
+        <span>© <span id="year">2026</span> 仓衡 · 期货仓位计算器</span>
+        <span>GitHub Pages 主站 · Cloudflare Pages 镜像</span>
+      </div>
+    </footer>
+
+    <div class="toast" id="toast" role="status" aria-live="polite"></div>
+    <noscript>
+      <div class="noscript">本工具需要启用 JavaScript 才能计算仓位。</div>
+    </noscript>
+    <script type="module" src="./assets/app.js"></script>
+  </body>
+</html>
