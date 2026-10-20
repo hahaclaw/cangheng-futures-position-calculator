@@ -3,10 +3,13 @@
  *
  * 计算顺序与参考图一致：
  * 1. 风险预算 = 账户余额 × 单笔风险比例
- * 2. 每手风险 = |入场价 − 止损价| × 合约乘数
- * 3. 风险手数 = ⌊风险预算 ÷ 每手风险⌋
- * 4. 再叠加保证金约束：保证金手数 = ⌊余额 ÷ 一手保证金⌋
- * 5. 建议手数 = min(风险手数, 保证金手数)
+ * 2. 价格区间 = 最高价 − 最低价（自动取入场价/止损价中的高低值）
+ * 3. 每手风险 = 价格区间 × 合约乘数
+ * 4. 公式手数 = ⌊风险预算 ÷ 每手风险⌋
+ * 5. 保证金手数 = ⌊余额 ÷ 一手保证金⌋，仅用于核对是否开得起
+ *
+ * 主结果 lots 始终等于公式手数；保证金不足时通过 marginShortfall 和
+ * affordableLots 单独提示，不改变公式结果。
  */
 
 function toNumber(value) {
@@ -57,22 +60,20 @@ export function calculatePosition({
   const isLong = direction !== "short";
   let directionOk = true;
   if (positive(entryPrice) && positive(stopPrice)) {
-    if (isLong && stopPrice >= entryPrice) {
-      directionOk = false;
-      errors.push("做多时，止损价应低于入场价");
-    }
-    if (!isLong && stopPrice <= entryPrice) {
-      directionOk = false;
-      errors.push("做空时，止损价应高于入场价");
-    }
+    if (isLong && stopPrice > entryPrice) directionOk = false;
+    if (!isLong && stopPrice < entryPrice) directionOk = false;
   }
 
   const stopDistance =
     Number.isFinite(entryPrice) && Number.isFinite(stopPrice)
       ? Math.abs(entryPrice - stopPrice)
       : 0;
-  if (directionOk && stopDistance === 0 && positive(entryPrice) && positive(stopPrice)) {
+  if (stopDistance === 0 && positive(entryPrice) && positive(stopPrice)) {
     errors.push("止损价不能等于入场价");
+  }
+
+  if (!directionOk && stopDistance > 0) {
+    warnings.push("当前方向与止损位置不一致，已按“高价 − 低价”的绝对值计算，请确认交易方向。");
   }
 
   const riskBudget = positive(accountBalance) && positive(riskPercent)
@@ -88,8 +89,9 @@ export function calculatePosition({
   const riskLots = floorRatio(riskBudget, riskPerLot);
   const marginLots = floorRatio(accountBalance, marginPerLot);
   const isValid = errors.length === 0;
-  const rawLots = Math.max(0, Math.min(riskLots, marginLots));
-  const lots = isValid ? rawLots : 0;
+  const lots = isValid ? riskLots : 0;
+  const affordableLots = Math.max(0, Math.min(riskLots, marginLots));
+  const marginShortfall = isValid && riskLots > marginLots;
   const usedMargin = marginPerLot * lots;
   const actualRisk = riskPerLot * lots;
   const remaining = positive(accountBalance) ? accountBalance - usedMargin : 0;
@@ -97,8 +99,8 @@ export function calculatePosition({
     positive(accountBalance) && riskPerLot > 0 ? (riskPerLot / accountBalance) * 100 : 0;
 
   let limitingFactor = "none";
-  if (riskLots < marginLots) limitingFactor = "risk";
-  else if (marginLots < riskLots) limitingFactor = "margin";
+  if (marginShortfall) limitingFactor = "margin";
+  else if (riskLots < marginLots) limitingFactor = "risk";
   else if (riskLots > 0) limitingFactor = "both";
 
   if (isValid && riskLots === 0 && marginLots > 0) {
@@ -108,11 +110,15 @@ export function calculatePosition({
         : "风险预算不足以覆盖 1 手。",
     );
   }
-  if (isValid && marginLots === 0 && marginPerLot > 0) {
-    warnings.push("账户余额不足以覆盖 1 手保证金。");
+  if (isValid && marginLots === 0 && marginPerLot > 0 && riskLots > 0) {
+    warnings.push(
+      `按风险公式可开 ${riskLots} 手，但账户余额不足以覆盖 1 手保证金；请增加保证金或降低交易手数。`,
+    );
   }
-  if (isValid && marginLots > 0 && riskLots > 0 && marginLots < riskLots) {
-    warnings.push("当前由保证金上限约束手数，实际风险占用会低于风险预算。");
+  if (isValid && marginLots > 0 && marginLots < riskLots) {
+    warnings.push(
+      `按风险公式可开 ${riskLots} 手，但保证金仅够 ${marginLots} 手；实际下单应降至 ${marginLots} 手或增加保证金。`,
+    );
   }
 
   return {
@@ -135,6 +141,8 @@ export function calculatePosition({
     riskLots,
     marginLots,
     lots,
+    affordableLots,
+    marginShortfall,
     usedMargin,
     actualRisk,
     remaining,
