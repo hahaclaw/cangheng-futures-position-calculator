@@ -1512,6 +1512,10 @@ input[type="range"]::-moz-range-thumb {
   font-size: 12px;
 }
 
+.exposure-head strong.is-over {
+  color: var(--accent);
+}
+
 .exposure-track {
   height: 5px;
   margin: 8px 0;
