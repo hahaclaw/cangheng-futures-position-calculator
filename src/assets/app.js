@@ -8,6 +8,7 @@ import {
 } from "./instruments.js";
 import { calculatePosition } from "./calculator.js";
 import { fetchMainQuote } from "./quotes.js";
+import { REFERENCE_PRICES, REFERENCE_PRICE_AS_OF } from "./reference-prices.js";
 
 const $ = (selector, root = document) => root.querySelector(selector);
 const $$ = (selector, root = document) => [...root.querySelectorAll(selector)];
@@ -15,6 +16,7 @@ const $$ = (selector, root = document) => [...root.querySelectorAll(selector)];
 const dom = {
   form: $("#position-form"),
   search: $("#instrument-search"),
+  clearSearch: $("#clear-search"),
   combo: $("#instrument-combobox"),
   results: $("#instrument-results"),
   selectionCode: $("#selected-code"),
@@ -25,7 +27,8 @@ const dom = {
   selectionQuote: $("#selected-quote"),
   balance: $("#balance"),
   risk: $("#risk"),
-  riskOutput: $("#risk-output"),
+  riskNumber: $("#risk-number"),
+  clearRisk: $("#clear-risk"),
   margin: $("#margin-rate"),
   entry: $("#entry"),
   stop: $("#stop"),
@@ -119,6 +122,69 @@ function percent(value, decimals = 1) {
   return `${value.toFixed(decimals)}%`;
 }
 
+function referenceTimeLabel() {
+  const date = new Date(REFERENCE_PRICE_AS_OF);
+  if (Number.isNaN(date.getTime())) return "最近更新";
+  return date.toLocaleString("zh-CN", {
+    month: "2-digit",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+}
+
+function referenceFor(instrument) {
+  return REFERENCE_PRICES[instrument.id] || null;
+}
+
+function refreshClearButtons() {
+  $$(".input-shell").forEach((shell) => {
+    const input = shell.querySelector("input");
+    const button = shell.querySelector(".input-clear");
+    if (input && button) button.hidden = !input.value;
+  });
+  if (dom.clearSearch) dom.clearSearch.hidden = !dom.search.value;
+  if (dom.clearRisk) dom.clearRisk.hidden = !dom.riskNumber.value;
+}
+
+function initClearButtons() {
+  $$(".input-shell").forEach((shell) => {
+    const input = shell.querySelector("input");
+    if (!input || shell.querySelector(".input-clear")) return;
+    const button = document.createElement("button");
+    button.type = "button";
+    button.className = "input-clear";
+    button.textContent = "×";
+    button.title = "清空";
+    button.setAttribute("aria-label", "清空输入");
+    button.hidden = !input.value;
+    button.addEventListener("click", () => {
+      input.value = "";
+      input.dispatchEvent(new Event("input", { bubbles: true }));
+      input.focus();
+      refreshClearButtons();
+    });
+    const suffix = shell.querySelector(".input-suffix");
+    shell.insertBefore(button, suffix || null);
+  });
+
+  dom.clearSearch.addEventListener("click", () => {
+    dom.search.value = "";
+    dom.clearSearch.hidden = true;
+    openCombo();
+    dom.search.focus();
+  });
+
+  dom.clearRisk.addEventListener("click", () => {
+    dom.riskNumber.value = "";
+    dom.clearRisk.hidden = true;
+    update();
+    dom.riskNumber.focus();
+  });
+
+  refreshClearButtons();
+}
+
 function toast(message) {
   dom.toast.textContent = message;
   dom.toast.classList.add("is-visible");
@@ -154,6 +220,7 @@ function setQuoteStatus(text, kind = "") {
   dom.quoteStatus.textContent = text;
   dom.quoteStatus.classList.toggle("is-live", kind === "live");
   dom.quoteStatus.classList.toggle("is-error", kind === "error");
+  dom.quoteStatus.classList.toggle("is-reference", kind === "reference");
 }
 
 function closeCombo() {
@@ -232,6 +299,7 @@ function cancelPendingQuote() {
 
 function selectInstrument(instrument, { resetPrices = true } = {}) {
   const changed = state.instrument?.id !== instrument.id;
+  const reference = referenceFor(instrument);
   state.instrument = instrument;
   state.quote = null;
   state.priceMode = "empty";
@@ -242,12 +310,24 @@ function selectInstrument(instrument, { resetPrices = true } = {}) {
     cancelPendingQuote();
     dom.margin.value = String(instrument.marginPct);
     if (resetPrices) {
-      dom.entry.value = "";
       dom.stop.value = "";
-      setQuoteStatus("点击“取主力价”或手动输入");
+      if (reference) {
+        dom.entry.value = inputPrice(reference.price);
+        state.priceMode = "reference";
+        setQuoteStatus(`参考价 ${referenceTimeLabel()} · 可手动修改`, "reference");
+      } else {
+        dom.entry.value = "";
+        setQuoteStatus("点击“取主力价”或手动输入");
+      }
     }
   } else if (!dom.entry.value) {
-    setQuoteStatus("点击“取主力价”或手动输入");
+    if (reference) {
+      dom.entry.value = inputPrice(reference.price);
+      state.priceMode = "reference";
+      setQuoteStatus(`参考价 ${referenceTimeLabel()} · 可手动修改`, "reference");
+    } else {
+      setQuoteStatus("点击“取主力价”或手动输入");
+    }
   }
 
   dom.search.value = "";
@@ -256,9 +336,11 @@ function selectInstrument(instrument, { resetPrices = true } = {}) {
 
   if (changed && resetPrices) {
     window.setTimeout(() => {
-      if (state.instrument.id === instrument.id && !dom.entry.value && state.priceMode !== "manual") {
-        getQuote({ auto: true, silent: true });
-      }
+      const shouldFetch =
+        state.instrument.id === instrument.id &&
+        state.priceMode !== "manual" &&
+        (state.priceMode === "reference" || !dom.entry.value);
+      if (shouldFetch) getQuote({ auto: true, silent: true });
     }, 260);
   }
 }
@@ -267,7 +349,7 @@ function readForm() {
   const marginPct = Number(dom.margin.value);
   return calculatePosition({
     balance: dom.balance.value,
-    riskPct: dom.risk.value,
+    riskPct: dom.riskNumber.value,
     entry: dom.entry.value,
     stop: dom.stop.value,
     multiplier: state.instrument.multiplier,
@@ -279,11 +361,15 @@ function readForm() {
 function renderResult(data) {
   const instrument = state.instrument;
   const awaitingPrice = !dom.entry.value || !dom.stop.value;
-  const invalid = !data.isValid && !awaitingPrice;
+  const onlyPriceMissing = data.errors.every(
+    (error) => error.includes("入场价格") || error.includes("止损价格"),
+  );
+  const waitingForPrice = awaitingPrice && onlyPriceMissing;
+  const invalid = !data.isValid && !waitingForPrice;
   dom.resultPanel.classList.toggle("is-error", invalid);
   dom.resultPanel.dataset.state = invalid
     ? "invalid"
-    : awaitingPrice
+    : waitingForPrice
       ? "waiting"
       : data.lots > 0
         ? "ready"
@@ -291,7 +377,7 @@ function renderResult(data) {
 
   dom.resultLots.textContent = data.isValid ? String(data.lots) : "—";
 
-  if (awaitingPrice) {
+  if (waitingForPrice) {
     dom.resultSummary.textContent =
       !dom.entry.value && !dom.stop.value
         ? "输入主力合约价格与止损价，立即显示一手保证金和可开手数。"
@@ -306,7 +392,7 @@ function renderResult(data) {
   } else if (data.marginShortfall) {
     dom.resultSummary.textContent = `按风险公式可开 ${data.lots} 手；但${instrument.name}主力保证金仅够 ${data.marginLots} 手。`;
   } else {
-    dom.resultSummary.textContent = `按 ${number(data.riskPct, 1)}% 风险公式，${instrument.name}主力可开 ${data.lots} 手。`;
+    dom.resultSummary.textContent = `按 ${number(data.riskPct, 2)}% 风险公式，${instrument.name}主力可开 ${data.lots} 手。`;
   }
 
   dom.resultMarginPerLot.textContent =
@@ -329,7 +415,7 @@ function renderResult(data) {
     ? data.marginShortfall
       ? "保证金不足，需降手数"
       : "保证金充足"
-    : awaitingPrice
+    : waitingForPrice
       ? "待输入价格"
       : "待修正参数";
 
@@ -340,7 +426,7 @@ function renderResult(data) {
   dom.exposureBar.style.width = `${barWidth}%`;
   dom.exposureBar.classList.toggle("is-high", usage >= 50);
 
-  dom.formulaRisk.textContent = `${number(data.balance)} × ${number(data.riskPct, 1)}% = ${money(data.riskBudget)}`;
+  dom.formulaRisk.textContent = `${number(data.balance)} × ${number(data.riskPct, 2)}% = ${money(data.riskBudget)}`;
   const highPrice = Math.max(data.entry, data.stop);
   const lowPrice = Math.min(data.entry, data.stop);
   dom.formulaRiskLot.textContent =
@@ -349,7 +435,7 @@ function renderResult(data) {
       : "输入有效的入场价与止损价";
   dom.formulaFinal.textContent = data.isValid
     ? `${money(data.riskBudget)} ÷ ${money(data.riskPerLot)} = ${data.lots} 手`
-    : awaitingPrice
+    : waitingForPrice
       ? "输入价格后计算"
       : "—";
 
@@ -360,7 +446,11 @@ function renderResult(data) {
 }
 
 function update() {
-  dom.riskOutput.textContent = percent(Number(dom.risk.value), 1);
+  const riskValue = Number(dom.riskNumber.value);
+  if (Number.isFinite(riskValue)) {
+    dom.risk.value = String(Math.min(9.99, Math.max(0.01, riskValue)));
+  }
+  refreshClearButtons();
   renderResult(readForm());
 }
 
@@ -372,6 +462,7 @@ function loadExample() {
   state.priceMode = "sample";
   dom.balance.value = "50000";
   dom.risk.value = "2";
+  dom.riskNumber.value = "2";
   dom.margin.value = "10";
   dom.entry.value = "3250";
   dom.stop.value = "3230";
@@ -410,8 +501,20 @@ async function getQuote({ auto = false, silent = false } = {}) {
   } catch (error) {
     if (requestId !== state.quoteRequestId || instrument.id !== state.instrument.id) return;
     if (state.priceMode !== "fetching") return;
-    setQuoteStatus(`取价失败：${error.message}。请手动输入`, "error");
-    if (!silent) toast("主力行情暂时不可用，请手动输入价格");
+    const reference = referenceFor(instrument);
+    if (reference) {
+      state.priceMode = "reference";
+      if (!dom.entry.value) dom.entry.value = inputPrice(reference.price);
+      setQuoteStatus(
+        `实时更新失败，使用 ${referenceTimeLabel()} 参考价 · 可手动修改`,
+        "reference",
+      );
+      update();
+      if (!silent) toast("实时行情不可用，继续使用参考价");
+    } else {
+      setQuoteStatus(`取价失败：${error.message}。请手动输入`, "error");
+      if (!silent) toast("主力行情暂时不可用，请手动输入价格");
+    }
   } finally {
     if (requestId === state.quoteRequestId) {
       dom.quoteButton.disabled = false;
@@ -434,7 +537,7 @@ function copyResult() {
     `标的：${instrument.name} ${instrument.code} 主力合约（${EXCHANGES[instrument.exchange].short}）`,
     `方向：${directionLabel()}`,
     `账户余额：${money(data.balance)}`,
-    `单笔风险：${number(data.riskPct, 1)}%（${money(data.riskBudget)}）`,
+    `单笔风险：${number(data.riskPct, 2)}%（${money(data.riskBudget)}）`,
     `入场 / 止损：${priceText(data.entry)} / ${priceText(data.stop)} ${instrument.quoteUnit}`,
     `交易单位：${instrument.unit}；合约乘数：${number(data.multiplier)}`,
     `合约价值 / 手：${money(data.contractValue)}`,
@@ -541,6 +644,7 @@ function bindEvents() {
 
   dom.search.addEventListener("input", () => {
     renderCombo(dom.search.value);
+    refreshClearButtons();
     state.activeComboIndex = -1;
   });
 
@@ -572,12 +676,12 @@ function bindEvents() {
   });
 
   document.addEventListener("pointerdown", (event) => {
-    if (!dom.combobox.contains(event.target)) closeCombo();
+    if (!dom.combo.contains(event.target)) closeCombo();
   });
 
   dom.search.addEventListener("blur", () => {
     window.setTimeout(() => {
-      if (!dom.combobox.contains(document.activeElement)) closeCombo();
+      if (!dom.combo.contains(document.activeElement)) closeCombo();
     }, 120);
   });
 
@@ -585,7 +689,7 @@ function bindEvents() {
 
   [dom.balance, dom.margin, dom.entry, dom.stop].forEach((input) => {
     input.addEventListener("input", () => {
-      if (input === dom.entry || input === dom.stop) {
+      if (input === dom.entry) {
         state.priceMode = "manual";
         setQuoteStatus("手动输入价格");
       }
@@ -593,7 +697,11 @@ function bindEvents() {
     });
   });
 
-  dom.risk.addEventListener("input", update);
+  dom.risk.addEventListener("input", () => {
+    dom.riskNumber.value = Number(dom.risk.value).toFixed(2);
+    update();
+  });
+  dom.riskNumber.addEventListener("input", update);
 
   $$('input[name="direction"]').forEach((input) => {
     input.addEventListener("change", () => {
@@ -637,6 +745,7 @@ function init() {
   updateSelectionUI(state.instrument);
   dom.year.textContent = String(new Date().getFullYear());
   bindEvents();
+  initClearButtons();
   renderLibrary();
   update();
   document.documentElement.dataset.appReady = "true";

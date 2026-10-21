@@ -177,6 +177,14 @@
                   spellcheck="false"
                   placeholder="例如：棕榈油2701、P、螺纹钢、IF2601"
                 />
+                <button
+                  class="input-clear search-clear"
+                  id="clear-search"
+                  type="button"
+                  aria-label="清空交易标的输入"
+                  title="清空"
+                  hidden
+                >×</button>
                 <span class="combobox-kbd" aria-hidden="true">品种</span>
                 <div class="combobox-results" id="instrument-results" role="listbox" hidden></div>
               </div>
@@ -218,25 +226,49 @@
               </div>
 
               <div class="field">
-                <label for="margin-rate">保证金率</label>
+                <label for="margin-rate">
+                  保证金率
+                  <span class="label-hint">占合约价值的比例</span>
+                </label>
                 <div class="input-shell">
                   <input id="margin-rate" name="marginRate" type="number" inputmode="decimal" min="0" max="100" step="0.5" value="10" />
                   <span class="input-suffix">%</span>
                 </div>
-                <span class="field-help">默认参考值，请按期货公司实际标准调整</span>
+                <span class="field-help">合约价值 × 保证金率 = 一手保证金，不是手续费；默认值请按期货公司标准调整</span>
               </div>
             </div>
 
             <div class="field risk-field">
               <div class="label-row">
                 <label for="risk">单笔风险</label>
-                <output class="risk-output" id="risk-output" for="risk">2.0%</output>
+                <div class="risk-value">
+                  <input
+                    class="risk-output"
+                    id="risk-number"
+                    type="number"
+                    inputmode="decimal"
+                    min="0.01"
+                    max="9.99"
+                    step="0.01"
+                    value="2"
+                    aria-label="单笔风险百分比"
+                  />
+                  <button
+                    class="input-clear risk-clear"
+                    id="clear-risk"
+                    type="button"
+                    aria-label="清空单笔风险"
+                    title="清空"
+                    hidden
+                  >×</button>
+                  <span>%</span>
+                </div>
               </div>
-              <input id="risk" name="riskPct" type="range" min="0.5" max="10" step="0.5" value="2" />
+              <input id="risk" name="riskPct" type="range" min="0.01" max="9.99" step="0.01" value="2" />
               <div class="range-labels" aria-hidden="true">
-                <span>0.5%</span><span>3%</span><span>5%</span><span>10%</span>
+                <span>0.01%</span><span>3%</span><span>6%</span><span>9.99%</span>
               </div>
-              <span class="field-help">只拿账户余额的一小部分去冒险，通常建议 1%–2%</span>
+              <span class="field-help">可调范围：0.01%–9.99%，即大于 0、小于 10%</span>
             </div>
 
             <div class="field direction-field">
@@ -486,6 +518,7 @@
         <p class="data-note">
           合约单位与报价单位依据交易所合约规则；保证金率为期货公司公示口径的参考值（数据基准日
           <time datetime="2026-10-12">2026-10-12</time>），会随行情和合约月份调整。实际标准请以开户期货公司为准。
+          选择品种后会优先读取主力实时价；取价失败时自动使用最近参考价并在价格下方标注时间。少数无主力连续行情的品种需手动输入价格。
         </p>
       </section>
     </main>

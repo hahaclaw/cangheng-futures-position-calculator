@@ -49,7 +49,9 @@ export function calculatePosition({
   const warnings = [];
 
   if (!positive(accountBalance)) errors.push("请输入大于 0 的账户余额");
-  if (!positive(riskPercent) || riskPercent > 100) errors.push("单笔风险应在 0–100% 之间");
+  if (!positive(riskPercent) || riskPercent >= 10) {
+    errors.push("单笔风险应大于 0 且小于 10%");
+  }
   if (!positive(entryPrice)) errors.push("请输入大于 0 的入场价格");
   if (!positive(stopPrice)) errors.push("请输入大于 0 的止损价格");
   if (!positive(contractMultiplier)) errors.push("合约乘数无效");

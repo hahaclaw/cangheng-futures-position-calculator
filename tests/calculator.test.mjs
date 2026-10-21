@@ -45,20 +45,20 @@ test("保证金不足时保留公式手数，并单独标记保证金缺口", ()
   const result = calculatePosition({
     ...base,
     balance: 10_000,
-    riskPct: 10,
+    riskPct: 9.99,
     entry: 600,
     stop: 580,
     marginRate: 0.5,
   });
 
   assert.equal(result.isValid, true);
-  assert.equal(result.riskLots, 5);
+  assert.equal(result.riskLots, 4);
   assert.equal(result.marginLots, 3);
-  assert.equal(result.lots, 5);
+  assert.equal(result.lots, 4);
   assert.equal(result.affordableLots, 3);
   assert.equal(result.marginShortfall, true);
-  assert.equal(result.usedMargin, 15_000);
-  assert.equal(result.remaining, -5_000);
+  assert.equal(result.usedMargin, 12_000);
+  assert.equal(result.remaining, -2_000);
   assert.match(result.warnings[0], /保证金仅够 3 手/);
 });
 
@@ -66,7 +66,7 @@ test("账户余额不足一手保证金时，公式手数仍展示并给出强�
   const result = calculatePosition({
     ...base,
     balance: 5_000,
-    riskPct: 10,
+    riskPct: 9.99,
     entry: 3_000,
     stop: 2_990,
     marginRate: 0.5,
@@ -74,7 +74,7 @@ test("账户余额不足一手保证金时，公式手数仍展示并给出强�
 
   assert.equal(result.isValid, true);
   assert.equal(result.marginLots, 0);
-  assert.equal(result.lots, 5);
+  assert.equal(result.lots, 4);
   assert.equal(result.affordableLots, 0);
   assert.equal(result.marginShortfall, true);
   assert.match(result.warnings[0], /不足以覆盖 1 手保证金/);
@@ -96,6 +96,21 @@ test("风险预算不足一手时，建议 0 手并计算所需风险比例", ()
   assert.equal(result.lots, 0);
   assert.equal(result.requiredRiskPctForOneLot, 2);
   assert.match(result.warnings[0], /2\.00%/);
+});
+
+test("单笔风险支持 0.5% 以下，但必须大于 0 且小于 10%", () => {
+  const low = calculatePosition({ ...base, riskPct: 0.4 });
+  assert.equal(low.isValid, true);
+  assert.equal(low.riskBudget, 200);
+  assert.equal(low.lots, 1);
+
+  const zero = calculatePosition({ ...base, riskPct: 0 });
+  assert.equal(zero.isValid, false);
+  assert.match(zero.errors.join(""), /大于 0 且小于 10%/);
+
+  const ten = calculatePosition({ ...base, riskPct: 10 });
+  assert.equal(ten.isValid, false);
+  assert.match(ten.errors.join(""), /大于 0 且小于 10%/);
 });
 
 test("入场价低于止损价时，按“最高价 − 最低价”计算并提示方向", () => {
