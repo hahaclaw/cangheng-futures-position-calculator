@@ -9,6 +9,7 @@ import {
 import { calculatePosition } from "./calculator.js";
 import { fetchMainQuote } from "./quotes.js";
 import { REFERENCE_PRICES, REFERENCE_PRICE_AS_OF } from "./reference-prices.js";
+import { getTradingHours } from "./trading-hours.js";
 
 const $ = (selector, root = document) => root.querySelector(selector);
 const $$ = (selector, root = document) => [...root.querySelectorAll(selector)];
@@ -36,6 +37,13 @@ const dom = {
   stopUnit: $("#stop-unit"),
   unitValue: $("#unit-value"),
   multiplierValue: $("#multiplier-value"),
+  sessionHours: $("#session-hours"),
+  sessionDuration: $("#session-duration"),
+  sessionDay: $("#session-day"),
+  sessionNight: $("#session-night"),
+  sessionRisk: $("#session-risk"),
+  sessionRiskFormula: $("#session-risk-formula"),
+  applySessionRisk: $("#apply-session-risk"),
   quoteButton: $("#fetch-quote"),
   quoteStatus: $("#quote-status"),
   loadExample: $("#load-example"),
@@ -79,6 +87,7 @@ const state = {
   libraryQuery: "",
   toastTimer: null,
   quoteRequestId: 0,
+  suggestedRiskPct: 0,
 };
 
 const integerFormatter = new Intl.NumberFormat("zh-CN", {
@@ -135,6 +144,26 @@ function referenceTimeLabel() {
 
 function referenceFor(instrument) {
   return REFERENCE_PRICES[instrument.id] || null;
+}
+
+function formatHours(hours) {
+  const whole = Math.floor(hours);
+  const minutes = Math.round((hours - whole) * 60);
+  return minutes > 0 ? `${whole}小时${minutes}分` : `${whole}小时`;
+}
+
+function updateSessionUI(instrument) {
+  const session = getTradingHours(instrument);
+  state.suggestedRiskPct = session.suggestedRiskPct;
+  dom.sessionHours.textContent = number(session.totalHours, 2);
+  dom.sessionDuration.textContent = formatHours(session.totalHours);
+  dom.sessionDay.textContent = session.dayLabel;
+  dom.sessionNight.textContent = session.nightLabel;
+  dom.sessionRisk.textContent = percent(session.suggestedRiskPct, 2);
+  dom.sessionRiskFormula.textContent = `2% ÷ ${number(session.totalHours, 2)} 小时 = ${percent(
+    session.suggestedRiskPct,
+    2,
+  )}`;
 }
 
 function refreshClearButtons() {
@@ -214,6 +243,7 @@ function updateSelectionUI(instrument) {
   dom.unitValue.textContent = instrument.unit;
   dom.multiplierValue.textContent = number(instrument.multiplier);
   dom.search.placeholder = `已选 ${instrument.name} ${instrument.code} 主力 · 输入名称可更换`;
+  updateSessionUI(instrument);
 }
 
 function setQuoteStatus(text, kind = "") {
@@ -376,6 +406,7 @@ function renderResult(data) {
         : "empty";
 
   dom.resultLots.textContent = data.isValid ? String(data.lots) : "—";
+  dom.resultLots.classList.toggle("is-placeholder", !data.isValid);
 
   if (waitingForPrice) {
     dom.resultSummary.textContent =
@@ -532,9 +563,18 @@ function copyResult() {
   }
 
   const instrument = state.instrument;
+  const session = getTradingHours(instrument);
   const text = [
     "仓衡 · 期货仓位计算",
     `标的：${instrument.name} ${instrument.code} 主力合约（${EXCHANGES[instrument.exchange].short}）`,
+    `交易时间：日盘 ${session.dayLabel}；夜盘 ${session.nightLabel}；每日 ${number(
+      session.totalHours,
+      2,
+    )} 小时`,
+    `小时级参考单笔风险：${percent(session.suggestedRiskPct, 2)}（2% ÷ ${number(
+      session.totalHours,
+      2,
+    )} 小时）`,
     `方向：${directionLabel()}`,
     `账户余额：${money(data.balance)}`,
     `单笔风险：${number(data.riskPct, 2)}%（${money(data.riskBudget)}）`,
@@ -712,6 +752,13 @@ function bindEvents() {
 
   dom.quoteButton.addEventListener("click", getQuote);
   dom.loadExample.addEventListener("click", loadExample);
+  dom.applySessionRisk.addEventListener("click", () => {
+    const value = Number(state.suggestedRiskPct);
+    if (!(value > 0)) return;
+    dom.riskNumber.value = value.toFixed(2);
+    update();
+    toast(`已套用小时级参考单笔风险 ${value.toFixed(2)}%`);
+  });
   dom.copy.addEventListener("click", copyResult);
 
   dom.libraryFilter.addEventListener("input", () => {

@@ -316,6 +316,37 @@
               <span class="unit-strip-note">自动识别</span>
             </div>
 
+            <section class="session-card" aria-labelledby="session-title">
+              <div class="session-head">
+                <div>
+                  <span class="session-kicker">交易时间</span>
+                  <h4 id="session-title">每日 <strong id="session-hours">5.75</strong> 小时</h4>
+                </div>
+                <span class="session-total" id="session-duration">5小时45分</span>
+              </div>
+              <dl class="session-grid">
+                <div>
+                  <dt>日盘</dt>
+                  <dd id="session-day">09:00–10:15、10:30–11:30、13:30–15:00</dd>
+                </div>
+                <div>
+                  <dt>夜盘</dt>
+                  <dd id="session-night">21:00–23:00</dd>
+                </div>
+              </dl>
+              <div class="session-risk">
+                <div class="session-risk-copy">
+                  <span>按小时交易的参考单笔风险</span>
+                  <strong id="session-risk">0.35%</strong>
+                  <small id="session-risk-formula">2% ÷ 5.75 小时</small>
+                </div>
+                <button class="session-apply" id="apply-session-risk" type="button">套用到单笔风险</button>
+              </div>
+              <p class="session-note">
+                日线参考 2%；小时线按 2% ÷ 每日交易时长折算。法定节假日前可能没有夜盘。
+              </p>
+            </section>
+
             <button class="button button-calculate" type="submit" id="calculate-button">
               <span>自动计算</span>
               <span class="button-arrow" aria-hidden="true">→</span>
