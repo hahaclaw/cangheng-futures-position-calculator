@@ -2557,42 +2557,104 @@ input[type="range"]::-moz-range-thumb {
     width: 100%;
   }
 
-  .table-scroll-hint {
-    display: block;
-  }
-
-  .instrument-table {
-    min-width: 500px;
-  }
-
-  .instrument-table th,
-  .instrument-table td {
-    padding-right: 9px;
-    padding-left: 9px;
-  }
-
-  .instrument-table th:nth-child(3),
-  .instrument-table td:nth-child(3),
-  .instrument-table th:nth-child(5),
-  .instrument-table td:nth-child(5) {
+  .hero-marquee {
     display: none;
   }
 
-  .instrument-table th:last-child,
-  .instrument-table td:last-child {
-    position: sticky;
-    right: 0;
-    z-index: 1;
-    background: var(--cream);
-    box-shadow: -8px 0 10px -9px rgba(16, 35, 27, 0.55);
+  .table-scroll-hint {
+    display: none;
   }
 
-  .instrument-table th:last-child {
-    z-index: 4;
-    background: var(--ink);
+  .table-shell {
+    max-height: 700px;
   }
 
-  .instrument-table tbody tr:hover td:last-child {
+  .instrument-table {
+    display: block;
+    width: 100%;
+    min-width: 0;
+  }
+
+  .instrument-table thead {
+    display: none;
+  }
+
+  .instrument-table tbody {
+    display: block;
+  }
+
+  .instrument-table tr {
+    display: grid;
+    grid-template-columns: auto 1fr auto;
+    grid-template-areas:
+      "name code action"
+      "exchange unit action"
+      "quote margin action";
+    gap: 4px 10px;
+    padding: 12px;
+    border-top: 1px solid #e5dece;
+  }
+
+  .instrument-table tr:first-child {
+    border-top: 0;
+  }
+
+  .instrument-table td {
+    display: block;
+    padding: 0;
+    border: 0;
+    color: var(--muted);
+    font-size: 10px;
+    text-align: left;
+  }
+
+  .instrument-table .cell-name {
+    grid-area: name;
+    align-self: center;
+  }
+
+  .instrument-table .cell-name .instrument-name {
+    font-size: 15px;
+  }
+
+  .instrument-table .cell-code {
+    grid-area: code;
+    align-self: center;
+  }
+
+  .instrument-table .cell-exchange {
+    grid-area: exchange;
+  }
+
+  .instrument-table .cell-unit {
+    grid-area: unit;
+  }
+
+  .instrument-table .cell-quote {
+    grid-area: quote;
+  }
+
+  .instrument-table .cell-margin {
+    grid-area: margin;
+    color: var(--ink);
+    text-align: left !important;
+  }
+
+  .instrument-table .cell-action {
+    grid-area: action;
+    align-self: center;
+  }
+
+  .instrument-table .cell-exchange::before,
+  .instrument-table .cell-unit::before,
+  .instrument-table .cell-quote::before,
+  .instrument-table .cell-margin::before {
+    color: var(--muted-light);
+    content: attr(data-label) " ";
+    font-size: 8px;
+  }
+
+  .instrument-table tbody tr:hover {
     background: #eef1e3;
   }
 

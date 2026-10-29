@@ -632,13 +632,13 @@ function renderLibrary() {
   for (const instrument of items) {
     const row = document.createElement("tr");
     row.innerHTML = `
-      <td><span class="instrument-name">${instrument.name}</span></td>
-      <td><span class="instrument-code">${instrument.code}</span></td>
-      <td class="table-exchange">${EXCHANGES[instrument.exchange].short}</td>
-      <td>${instrument.unit}</td>
-      <td>${instrument.quoteUnit}</td>
-      <td class="num-col">${integerFormatter.format(instrument.marginPct)}%</td>
-      <td><button class="table-use" type="button" data-id="${instrument.id}">带入</button></td>
+      <td class="cell-name"><span class="instrument-name">${instrument.name}</span></td>
+      <td class="cell-code"><span class="instrument-code">${instrument.code}</span></td>
+      <td class="cell-exchange table-exchange" data-label="交易所">${EXCHANGES[instrument.exchange].short}</td>
+      <td class="cell-unit" data-label="交易单位">${instrument.unit}</td>
+      <td class="cell-quote" data-label="报价">${instrument.quoteUnit}</td>
+      <td class="cell-margin num-col" data-label="保证金">${integerFormatter.format(instrument.marginPct)}%</td>
+      <td class="cell-action"><button class="table-use" type="button" data-id="${instrument.id}">带入</button></td>
     `;
     fragment.append(row);
   }
