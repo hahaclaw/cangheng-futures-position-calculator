@@ -49,6 +49,7 @@ const dom = {
   loadExample: $("#load-example"),
   resultPanel: $("#result-panel"),
   resultLots: $("#result-lots"),
+  resultUnit: $("#result-unit"),
   resultSummary: $("#result-summary"),
   resultMarginPerLot: $("#result-margin-per-lot"),
   resultMarginNote: $("#result-margin-note"),
@@ -405,7 +406,8 @@ function renderResult(data) {
         ? "ready"
         : "empty";
 
-  dom.resultLots.textContent = data.isValid ? String(data.lots) : "—";
+  dom.resultLots.textContent = data.isValid ? String(data.lots) : "待";
+  dom.resultUnit.hidden = !data.isValid;
   dom.resultLots.classList.toggle("is-placeholder", !data.isValid);
 
   if (waitingForPrice) {
@@ -571,7 +573,7 @@ function copyResult() {
       session.totalHours,
       2,
     )} 小时`,
-    `小时级参考单笔风险：${percent(session.suggestedRiskPct, 2)}（2% ÷ ${number(
+    `小时级最佳单笔风险：${percent(session.suggestedRiskPct, 2)}（2% ÷ ${number(
       session.totalHours,
       2,
     )} 小时）`,
@@ -757,7 +759,7 @@ function bindEvents() {
     if (!(value > 0)) return;
     dom.riskNumber.value = value.toFixed(2);
     update();
-    toast(`已套用小时级参考单笔风险 ${value.toFixed(2)}%`);
+    toast(`已套用小时级最佳单笔风险 ${value.toFixed(2)}%`);
   });
   dom.copy.addEventListener("click", copyResult);
 
