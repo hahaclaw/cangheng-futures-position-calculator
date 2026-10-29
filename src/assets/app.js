@@ -46,7 +46,6 @@ const dom = {
   applySessionRisk: $("#apply-session-risk"),
   quoteButton: $("#fetch-quote"),
   quoteStatus: $("#quote-status"),
-  loadExample: $("#load-example"),
   resultPanel: $("#result-panel"),
   resultLots: $("#result-lots"),
   resultUnit: $("#result-unit"),
@@ -68,6 +67,9 @@ const dom = {
   metricMarginLots: $("#metric-margin-lots"),
   metricRiskLots: $("#metric-risk-lots"),
   copy: $("#copy-result"),
+  mobileResultLots: $("#mobile-result-lots"),
+  mobileResultMargin: $("#mobile-result-margin"),
+  mobileResultView: $("#mobile-result-view"),
   libraryFilter: $("#library-filter"),
   exchangeFilters: $("#exchange-filters"),
   tbody: $("#instrument-tbody"),
@@ -431,6 +433,13 @@ function renderResult(data) {
   dom.resultMarginPerLot.textContent =
     data.marginPerLot > 0 ? money(data.marginPerLot) : "待取价";
   dom.resultMarginPerLot.classList.toggle("is-placeholder", !(data.marginPerLot > 0));
+  dom.mobileResultLots.textContent = data.isValid
+    ? `${data.lots} 手`
+    : waitingForPrice
+      ? "待止损"
+      : "待输入";
+  dom.mobileResultMargin.textContent =
+    data.marginPerLot > 0 ? money(data.marginPerLot) : "待取价";
   dom.resultMarginNote.textContent =
     data.contractValue > 0
       ? `主力合约价值 ${money(data.contractValue)} × ${number(data.marginRate * 100, 2)}% 保证金率`
@@ -485,26 +494,6 @@ function update() {
   }
   refreshClearButtons();
   renderResult(readForm());
-}
-
-function loadExample() {
-  cancelPendingQuote();
-  state.instrument = getInstrument("m");
-  state.direction = "long";
-  state.quote = null;
-  state.priceMode = "sample";
-  dom.balance.value = "50000";
-  dom.risk.value = "2";
-  dom.riskNumber.value = "2";
-  dom.margin.value = "10";
-  dom.entry.value = "3250";
-  dom.stop.value = "3230";
-  dom.search.value = "";
-  $("#direction-long").checked = true;
-  updateSelectionUI(state.instrument);
-  setQuoteStatus("示例价格，可手动修改");
-  update();
-  toast("已载入参考图示例");
 }
 
 async function getQuote({ auto = false, silent = false } = {}) {
@@ -753,7 +742,6 @@ function bindEvents() {
   });
 
   dom.quoteButton.addEventListener("click", getQuote);
-  dom.loadExample.addEventListener("click", loadExample);
   dom.applySessionRisk.addEventListener("click", () => {
     const value = Number(state.suggestedRiskPct);
     if (!(value > 0)) return;
@@ -762,6 +750,9 @@ function bindEvents() {
     toast(`已套用小时级最佳单笔风险 ${value.toFixed(2)}%`);
   });
   dom.copy.addEventListener("click", copyResult);
+  dom.mobileResultView.addEventListener("click", () => {
+    dom.resultPanel.scrollIntoView({ behavior: "smooth", block: "start" });
+  });
 
   dom.libraryFilter.addEventListener("input", () => {
     state.libraryQuery = dom.libraryFilter.value;

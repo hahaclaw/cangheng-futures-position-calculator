@@ -281,7 +281,7 @@ ul {
   position: relative;
   z-index: 1;
   display: grid;
-  grid-template-columns: minmax(0, 1.13fr) minmax(360px, 0.87fr);
+  grid-template-columns: minmax(0, 1fr);
   align-items: center;
   gap: clamp(44px, 6vw, 96px);
   width: min(1240px, 92vw);
@@ -291,7 +291,7 @@ ul {
 
 .hero-copy {
   position: relative;
-  max-width: 690px;
+  max-width: 850px;
 }
 
 .eyebrow,
@@ -319,7 +319,7 @@ ul {
 }
 
 .hero h1 {
-  max-width: 720px;
+  max-width: 920px;
   font-family: var(--font-serif);
   font-size: clamp(56px, 7.5vw, 108px);
   font-weight: 900;
@@ -2239,6 +2239,12 @@ input[type="range"]::-moz-range-thumb {
   letter-spacing: 0.03em;
 }
 
+/* Mobile result bar */
+
+.mobile-result-bar {
+  display: none;
+}
+
 /* Toast and noscript */
 
 .toast {
@@ -2401,6 +2407,68 @@ input[type="range"]::-moz-range-thumb {
 }
 
 @media (max-width: 600px) {
+  body {
+    padding-bottom: calc(68px + env(safe-area-inset-bottom));
+  }
+
+  .mobile-result-bar {
+    position: fixed;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    z-index: 150;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 9px 14px calc(9px + env(safe-area-inset-bottom));
+    background: rgba(12, 25, 20, 0.97);
+    border-top: 1px solid rgba(217, 244, 124, 0.55);
+    box-shadow: 0 -10px 24px rgba(0, 0, 0, 0.18);
+    backdrop-filter: blur(12px);
+  }
+
+  .mobile-result-metric {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+    gap: 1px;
+  }
+
+  .mobile-result-metric span {
+    color: var(--sage);
+    font-size: 8px;
+  }
+
+  .mobile-result-metric strong {
+    overflow: hidden;
+    color: var(--cream);
+    font-family: var(--font-mono);
+    font-size: 15px;
+    line-height: 1.2;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .mobile-result-metric:nth-child(2) strong {
+    color: var(--lime);
+  }
+
+  .mobile-result-view {
+    flex: none;
+    margin-left: auto;
+    padding: 8px 10px;
+    border: 1px solid rgba(217, 244, 124, 0.7);
+    background: transparent;
+    color: var(--lime);
+    font-size: 10px;
+    white-space: nowrap;
+  }
+
+  .mobile-result-view:active {
+    background: var(--lime);
+    color: var(--ink-deep);
+  }
+
   .site-header {
     height: 68px;
     padding: 0 18px;

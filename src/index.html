@@ -89,41 +89,6 @@
             </dl>
           </div>
 
-          <div class="hero-ticket reveal delay-2" aria-label="豆粕仓位计算示例">
-            <div class="ticket-top">
-              <span>EXAMPLE / 参考图示例</span>
-              <span class="ticket-badge">算一遍</span>
-            </div>
-            <div class="ticket-symbol">
-              <div>
-                <span class="ticket-code">M</span>
-                <span class="ticket-market">大商所 · 豆粕</span>
-              </div>
-              <span class="ticket-unit">10 吨 / 手</span>
-            </div>
-            <div class="ticket-inputs">
-              <div><span>账户余额</span><strong>¥50,000</strong></div>
-              <div><span>单笔风险</span><strong>2%</strong></div>
-              <div><span>入场价格</span><strong>3,250</strong></div>
-              <div><span>止损价格</span><strong>3,230</strong></div>
-            </div>
-            <div class="ticket-equation">
-              <div>
-                <span>风险预算</span>
-                <code>¥1,000</code>
-              </div>
-              <span class="ticket-op">÷</span>
-              <div>
-                <span>每手风险</span>
-                <code>¥200</code>
-              </div>
-            </div>
-            <div class="ticket-result">
-              <span>最佳合约数</span>
-              <strong>5<small>手</small></strong>
-            </div>
-            <p class="ticket-footnote">50,000 × 2% ÷ [(3,250 − 3,230) × 10]</p>
-          </div>
         </div>
         <div class="hero-marquee" aria-hidden="true">
           <span>TRADE THE PLAN</span><i></i><span>NOT THE FEELING</span><i></i>
@@ -149,7 +114,6 @@
                 <span class="panel-step">01</span>
                 <h3>设置这笔交易</h3>
               </div>
-              <button class="text-button" type="button" id="load-example">载入示例</button>
             </div>
 
             <div class="field field-search">
@@ -294,7 +258,7 @@
                   <input id="entry" name="entry" type="number" inputmode="decimal" min="0" step="any" value="3250" />
                   <span class="input-suffix" id="entry-unit">元/吨</span>
                 </div>
-                <span class="field-help quote-status" id="quote-status" role="status" aria-live="polite">示例价格，可手动修改</span>
+                <span class="field-help quote-status" id="quote-status" role="status" aria-live="polite">可手动修改</span>
               </div>
 
               <div class="field">
@@ -457,7 +421,7 @@
             <h2>不是拍脑袋，是三道算术题。</h2>
           </div>
           <p class="section-note">
-            沿用参考图的固定比例风险法，再单独核对保证金，避免“算得下、开不起”。
+            沿用固定比例风险法，再单独核对保证金，避免“算得下、开不起”。
           </p>
         </div>
 
@@ -490,7 +454,7 @@
           <div>
             <strong>公式手数和保证金手数分开展示</strong>
             <p>
-              参考图的固定比例风险法回答“亏得起几手”，保证金回答“账户开不开得起”。主结果严格按公式计算；如果保证金只够更少的手数，页面会单独提示可执行手数与资金缺口，避免把两个概念混在一起。
+              固定比例风险法回答“亏得起几手”，保证金回答“账户开不开得起”。主结果严格按公式计算；如果保证金只够更少的手数，页面会单独提示可执行手数与资金缺口，避免把两个概念混在一起。
             </p>
           </div>
         </div>
@@ -572,6 +536,18 @@
         <span>GitHub Pages 主站 · Cloudflare Pages 镜像</span>
       </div>
     </footer>
+
+    <div class="mobile-result-bar" id="mobile-result-bar" aria-live="polite">
+      <div class="mobile-result-metric">
+        <span>公式手数</span>
+        <strong id="mobile-result-lots">5 手</strong>
+      </div>
+      <div class="mobile-result-metric">
+        <span>一手保证金</span>
+        <strong id="mobile-result-margin">¥3,250</strong>
+      </div>
+      <button class="mobile-result-view" id="mobile-result-view" type="button">结果详情</button>
+    </div>
 
     <div class="toast" id="toast" role="status" aria-live="polite"></div>
     <noscript>
