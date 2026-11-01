@@ -10,6 +10,7 @@ import { calculatePosition } from "./calculator.js";
 import { fetchMainQuote } from "./quotes.js";
 import { REFERENCE_PRICES, REFERENCE_PRICE_AS_OF } from "./reference-prices.js";
 import { getTradingHours } from "./trading-hours.js";
+import { feeForLot, getFeeRule } from "./fees.js";
 
 const $ = (selector, root = document) => root.querySelector(selector);
 const $$ = (selector, root = document) => [...root.querySelectorAll(selector)];
@@ -50,8 +51,11 @@ const dom = {
   resultLots: $("#result-lots"),
   resultUnit: $("#result-unit"),
   resultSummary: $("#result-summary"),
+  resultTotalCost: $("#result-total-cost"),
+  resultCostNote: $("#result-cost-note"),
+  resultContractValue: $("#result-contract-value"),
   resultMarginPerLot: $("#result-margin-per-lot"),
-  resultMarginNote: $("#result-margin-note"),
+  resultFeePerLot: $("#result-fee-per-lot"),
   metricRiskBudget: $("#metric-risk-budget"),
   metricRiskPerLot: $("#metric-risk-per-lot"),
   metricContractValue: $("#metric-contract-value"),
@@ -380,7 +384,7 @@ function selectInstrument(instrument, { resetPrices = true } = {}) {
 
 function readForm() {
   const marginPct = Number(dom.margin.value);
-  return calculatePosition({
+  const position = calculatePosition({
     balance: dom.balance.value,
     riskPct: dom.riskNumber.value,
     entry: dom.entry.value,
@@ -389,6 +393,14 @@ function readForm() {
     marginRate: Number.isFinite(marginPct) ? marginPct / 100 : Number.NaN,
     direction: state.direction,
   });
+  const feeRule = getFeeRule(state.instrument);
+  const feePerLot = feeForLot(feeRule, position.contractValue);
+  return {
+    ...position,
+    feeRule,
+    feePerLot,
+    totalCost: position.marginPerLot + feePerLot,
+  };
 }
 
 function renderResult(data) {
@@ -430,20 +442,21 @@ function renderResult(data) {
     dom.resultSummary.textContent = `按 ${number(data.riskPct, 2)}% 风险公式，${instrument.name}主力可开 ${data.lots} 手。`;
   }
 
-  dom.resultMarginPerLot.textContent =
-    data.marginPerLot > 0 ? money(data.marginPerLot) : "待取价";
-  dom.resultMarginPerLot.classList.toggle("is-placeholder", !(data.marginPerLot > 0));
+  const hasPrice = data.contractValue > 0;
+  dom.resultTotalCost.textContent = hasPrice ? money(data.totalCost) : "待取价";
+  dom.resultTotalCost.classList.toggle("is-placeholder", !hasPrice);
+  dom.resultContractValue.textContent = hasPrice ? money(data.contractValue) : "—";
+  dom.resultMarginPerLot.textContent = data.marginPerLot > 0 ? money(data.marginPerLot) : "—";
+  dom.resultFeePerLot.textContent = hasPrice ? money(data.feePerLot) : "—";
+  dom.resultCostNote.textContent = hasPrice
+    ? `保证金 ${money(data.marginPerLot)} + 开仓手续费 ${money(data.feePerLot)}（参考 ${data.feeRule.asOf}）`
+    : "输入主力合约价格后自动计算";
   dom.mobileResultLots.textContent = data.isValid
     ? `${data.lots} 手`
     : waitingForPrice
       ? "待止损"
       : "待输入";
-  dom.mobileResultMargin.textContent =
-    data.marginPerLot > 0 ? money(data.marginPerLot) : "待取价";
-  dom.resultMarginNote.textContent =
-    data.contractValue > 0
-      ? `主力合约价值 ${money(data.contractValue)} × ${number(data.marginRate * 100, 2)}% 保证金率`
-      : "输入主力合约价格后自动计算";
+  dom.mobileResultMargin.textContent = hasPrice ? money(data.totalCost) : "待取价";
 
   dom.metricRiskBudget.textContent = data.riskBudget > 0 ? money(data.riskBudget) : "—";
   dom.metricRiskPerLot.textContent = data.riskPerLot > 0 ? money(data.riskPerLot) : "—";
@@ -571,14 +584,15 @@ function copyResult() {
     `单笔风险：${number(data.riskPct, 2)}%（${money(data.riskBudget)}）`,
     `入场 / 止损：${priceText(data.entry)} / ${priceText(data.stop)} ${instrument.quoteUnit}`,
     `交易单位：${instrument.unit}；合约乘数：${number(data.multiplier)}`,
-    `合约价值 / 手：${money(data.contractValue)}`,
+    `一手标的价值：${money(data.contractValue)}`,
     `保证金率：${number(data.marginRate * 100, 2)}%；一手保证金：${money(data.marginPerLot)}`,
+    `开仓手续费参考：${money(data.feePerLot)}；一手合计费用：${money(data.totalCost)}`,
     `每手风险：${money(data.riskPerLot)}；按图公式手数：${data.riskLots}；保证金可覆盖：${data.marginLots} 手`,
     data.marginShortfall
       ? `公式结果：${data.lots} 手；但保证金不足，实际应降至 ${data.marginLots} 手或增加保证金。`
       : `公式结果：${data.lots} 手；占用保证金：${money(data.usedMargin)}；剩余可用：${money(data.remaining)}`,
     "",
-    `参数基准：${DATA_AS_OF}，保证金请以期货公司实际标准为准。`,
+    `参数基准：${DATA_AS_OF}；手续费参考：${data.feeRule.asOf}。保证金与手续费请以期货公司实际标准为准。`,
   ].join("\n");
 
   const finish = () => toast("计算明细已复制");

@@ -3,10 +3,10 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>仓衡 · 期货仓位计算器｜交易单位、一手保证金、可开手数</title>
+    <title>仓衡 · 期货仓位计算器｜一手标的价值、保证金、手续费与可开手数</title>
     <meta
       name="description"
-      content="只交易主力合约。输入文华财经里的期货标的名称或代码，自动匹配主力合约的交易单位、一手需要支付的保证金，并按账户余额和单笔风险比例计算可开手数。"
+      content="只交易主力合约。输入文华财经里的期货标的名称或代码，自动显示交易单位、一手标的价值、保证金、开仓手续费、一手合计费用，并按账户余额和单笔风险比例计算可开手数。"
     />
     <meta name="theme-color" content="#0e2038" />
     <link rel="canonical" href="https://hahaclaw.github.io/cangheng-futures-position-calculator/" />
@@ -15,7 +15,7 @@
     <meta property="og:title" content="仓衡 · 期货仓位计算器" />
     <meta
       property="og:description"
-      content="只交易主力合约。支持 88 个境内期货品种，自动匹配交易单位、一手保证金与风险预算手数。"
+      content="只交易主力合约。支持 88 个境内期货品种，自动显示一手标的价值、保证金、手续费与合计费用，并计算风险预算手数。"
     />
     <meta property="og:image" content="https://hahaclaw.github.io/cangheng-futures-position-calculator/assets/og.png" />
     <meta property="og:image:width" content="1200" />
@@ -23,7 +23,7 @@
     <meta property="og:image:alt" content="仓衡期货仓位计算器：先算风险，再算手数。" />
     <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:title" content="仓衡 · 期货仓位计算器" />
-    <meta name="twitter:description" content="只交易主力合约。输入标的名称，算清交易单位、一手保证金与可开手数。" />
+    <meta name="twitter:description" content="只交易主力合约。输入标的名称，算清一手标的价值、保证金、手续费与可开手数。" />
     <meta name="twitter:image" content="https://hahaclaw.github.io/cangheng-futures-position-calculator/assets/og.png" />
     <link rel="icon" href="./assets/favicon.svg" type="image/svg+xml" />
     <link rel="stylesheet" href="./assets/styles.css" />
@@ -345,11 +345,25 @@
             </div>
 
             <div class="result-cost">
-              <div>
-                <span>主力合约一手需要支付</span>
-                <strong id="result-margin-per-lot">¥3,250</strong>
+              <div class="result-cost-main">
+                <span>主力合约一手合计费用</span>
+                <strong id="result-total-cost">¥3,259</strong>
               </div>
-              <small id="result-margin-note">按主力合约价格 × 交易单位 × 保证金率估算</small>
+              <small id="result-cost-note">保证金 ¥3,250 + 开仓手续费 ¥9（参考）</small>
+              <dl class="result-cost-lines">
+                <div>
+                  <dt>一手标的价值</dt>
+                  <dd id="result-contract-value">¥32,500</dd>
+                </div>
+                <div>
+                  <dt>保证金</dt>
+                  <dd id="result-margin-per-lot">¥3,250</dd>
+                </div>
+                <div>
+                  <dt>开仓手续费</dt>
+                  <dd id="result-fee-per-lot">¥9</dd>
+                </div>
+              </dl>
             </div>
 
             <dl class="result-metrics">
@@ -513,6 +527,7 @@
         <p class="data-note">
           合约单位与报价单位依据交易所合约规则；保证金率为期货公司公示口径的参考值（数据基准日
           <time datetime="2026-10-12">2026-10-12</time>），会随行情和合约月份调整。实际标准请以开户期货公司为准。
+          开仓手续费为公开期货公司标准参考（数据基准日 <time datetime="2026-11-02">2026-11-02</time>），平今、合约月份和期货公司不同会有所差异。
           选择品种后会优先读取主力实时价；取价失败时自动使用最近参考价并在价格下方标注时间。少数无主力连续行情的品种需手动输入价格。
         </p>
       </section>
@@ -543,8 +558,8 @@
         <strong id="mobile-result-lots">5 手</strong>
       </div>
       <div class="mobile-result-metric">
-        <span>一手保证金</span>
-        <strong id="mobile-result-margin">¥3,250</strong>
+        <span>一手合计费用</span>
+        <strong id="mobile-result-margin">¥3,259</strong>
       </div>
       <button class="mobile-result-view" id="mobile-result-view" type="button">结果详情</button>
     </div>
