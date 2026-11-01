@@ -2838,3 +2838,267 @@ input[type="range"]::-moz-range-thumb {
     transition-duration: 0.01ms !important;
   }
 }
+
+/* Compact layout: reduce vertical air without removing content */
+
+.hero-inner {
+  padding: clamp(36px, 4.5vw, 56px) 0 38px;
+}
+
+.eyebrow {
+  margin-bottom: 14px;
+}
+
+.hero-lede {
+  margin-top: 16px;
+  line-height: 1.7;
+}
+
+.hero-actions {
+  margin-top: 22px;
+}
+
+.hero-stats {
+  margin-top: 26px;
+}
+
+.hero-marquee {
+  min-height: 42px;
+}
+
+.calculator-section,
+.method-section,
+.library-section {
+  padding: clamp(42px, 5vw, 64px) 0;
+}
+
+.section-heading {
+  margin-bottom: 22px;
+}
+
+.form-panel,
+.result-panel {
+  padding: clamp(20px, 2.5vw, 28px);
+}
+
+.panel-head,
+.result-head {
+  margin-bottom: 18px;
+}
+
+.field {
+  gap: 6px;
+}
+
+.field-grid,
+.price-grid {
+  gap: 14px;
+  margin-top: 14px;
+}
+
+.input-shell {
+  min-height: 44px;
+  padding: 0 10px;
+}
+
+.input-shell input {
+  padding: 9px 0;
+}
+
+.combobox {
+  min-height: 48px;
+  padding: 0 10px;
+}
+
+.combobox input {
+  padding: 12px 0;
+}
+
+.selection-card {
+  margin-top: 8px;
+  padding: 9px 11px;
+}
+
+.risk-field {
+  margin-top: 14px;
+  padding: 12px 14px 10px;
+}
+
+.direction-field,
+.price-grid,
+.unit-strip {
+  margin-top: 14px;
+}
+
+.unit-strip {
+  padding: 9px 12px;
+}
+
+.session-card {
+  margin-top: 10px;
+  padding: 13px;
+}
+
+.session-grid {
+  gap: 6px;
+  margin-top: 9px;
+  padding-top: 8px;
+}
+
+.session-risk {
+  margin-top: 9px;
+  padding-top: 9px;
+}
+
+.session-note {
+  margin-top: 7px;
+}
+
+.button-calculate {
+  margin-top: 18px;
+  padding: 13px 18px;
+}
+
+.form-footnote {
+  margin-top: 12px;
+}
+
+.result-number strong {
+  font-size: clamp(62px, 6.5vw, 90px);
+}
+
+.result-summary {
+  min-height: 34px;
+}
+
+.result-cost {
+  margin: 16px 0;
+  padding: 12px 14px;
+}
+
+.result-metrics > div {
+  padding: 10px 12px;
+}
+
+.exposure {
+  margin-top: 14px;
+}
+
+.formula-card {
+  margin-top: 14px;
+  padding: 11px 13px;
+}
+
+.formula-line {
+  padding: 5px 0;
+}
+
+.result-warning {
+  margin-top: 10px;
+}
+
+.result-foot {
+  margin-top: 12px;
+  padding-top: 10px;
+}
+
+.method-grid {
+  gap: 14px;
+}
+
+.method-card {
+  min-height: 220px;
+  padding: 22px;
+}
+
+.method-card h3 {
+  margin-top: 18px;
+}
+
+.method-formula {
+  padding-top: 14px;
+}
+
+.method-callout {
+  margin-top: 14px;
+  padding: 16px 18px;
+}
+
+.library-toolbar {
+  margin-bottom: 10px;
+}
+
+.site-footer {
+  padding: 34px 4vw 22px;
+}
+
+.footer-top {
+  padding-bottom: 24px;
+}
+
+.footer-bottom {
+  padding-top: 14px;
+}
+
+@media (max-width: 600px) {
+  .hero-inner {
+    padding: 32px 18px 34px;
+  }
+
+  .eyebrow {
+    margin-bottom: 12px;
+  }
+
+  .hero-lede {
+    margin-top: 14px;
+  }
+
+  .hero-actions {
+    margin-top: 18px;
+  }
+
+  .hero-stats {
+    margin-top: 22px;
+  }
+
+  .calculator-section,
+  .method-section,
+  .library-section {
+    padding: 38px 18px;
+  }
+
+  .section-heading {
+    margin-bottom: 20px;
+  }
+
+  .form-panel,
+  .result-panel {
+    padding: 16px;
+  }
+
+  .result-number strong {
+    font-size: clamp(58px, 15vw, 74px);
+  }
+
+  .result-summary {
+    min-height: 0;
+  }
+
+  .result-cost {
+    margin: 14px 0;
+    padding: 11px 12px;
+  }
+
+  .result-metrics > div {
+    padding: 9px 10px;
+  }
+
+  .method-card {
+    min-height: 200px;
+    padding: 20px;
+  }
+
+  .site-footer {
+    padding: 30px 18px 18px;
+  }
+}
