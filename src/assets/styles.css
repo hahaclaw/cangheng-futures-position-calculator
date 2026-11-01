@@ -326,6 +326,7 @@ ul {
   font-weight: 900;
   letter-spacing: -0.035em;
   line-height: 1.12;
+  white-space: nowrap;
 }
 
 .hero h1 span {
@@ -658,10 +659,15 @@ ul {
 
 .section-heading h2 {
   font-family: var(--font-serif);
-  font-size: var(--title-size);
+  font-size: clamp(32px, 4vw, 52px);
   font-weight: 900;
   letter-spacing: -0.045em;
   line-height: 1.12;
+}
+
+#calculator .section-heading h2,
+#instruments .section-heading h2 {
+  font-size: var(--title-size);
 }
 
 .section-note {
@@ -2547,7 +2553,7 @@ input[type="range"]::-moz-range-thumb {
   }
 
   :root {
-    --title-size: clamp(30px, 8.5vw, 36px);
+    --title-size: clamp(26px, 8.2vw, 34px);
   }
 
   .hero-lede {
