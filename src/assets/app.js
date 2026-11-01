@@ -11,6 +11,11 @@ import { fetchMainQuote } from "./quotes.js";
 import { REFERENCE_PRICES, REFERENCE_PRICE_AS_OF } from "./reference-prices.js";
 import { getTradingHours } from "./trading-hours.js";
 import { feeForLot, getFeeRule } from "./fees.js";
+import {
+  EXCHANGE_FEE_AS_OF,
+  exchangeFeeForLot,
+  getExchangeFeeRule,
+} from "./exchange-fees.js";
 
 const $ = (selector, root = document) => root.querySelector(selector);
 const $$ = (selector, root = document) => [...root.querySelectorAll(selector)];
@@ -58,6 +63,9 @@ const dom = {
   resultFeePerLot: $("#result-fee-per-lot"),
   resultFeeClose: $("#result-fee-close"),
   resultFeeCloseToday: $("#result-fee-close-today"),
+  exchangeFeeOpen: $("#exchange-fee-open"),
+  exchangeFeeClose: $("#exchange-fee-close"),
+  exchangeFeeToday: $("#exchange-fee-today"),
   feeSource: $("#fee-source"),
   metricRiskBudget: $("#metric-risk-budget"),
   metricRiskPerLot: $("#metric-risk-per-lot"),
@@ -397,16 +405,42 @@ function readForm() {
     direction: state.direction,
   });
   const feeRule = getFeeRule(state.instrument);
+  const exchangeRule = getExchangeFeeRule(state.instrument);
   const feePerLot = feeForLot(feeRule, position.contractValue, "open");
   const feeClosePerLot = feeForLot(feeRule, position.contractValue, "close");
   const feeCloseTodayPerLot = feeForLot(feeRule, position.contractValue, "closeToday");
+  const exchangeOpen = exchangeFeeForLot(exchangeRule, position.contractValue, "open");
+  const exchangeClose = exchangeFeeForLot(exchangeRule, position.contractValue, "close");
+  const exchangeToday = exchangeFeeForLot(exchangeRule, position.contractValue, "closeToday");
+  const commissionOpen = feeRule.missing
+    ? null
+    : exchangeRule.missing
+      ? feePerLot
+      : Math.max(feePerLot - exchangeOpen, 0);
+  const commissionClose = feeRule.missing
+    ? null
+    : exchangeRule.missing
+      ? feeClosePerLot
+      : Math.max(feeClosePerLot - exchangeClose, 0);
+  const commissionToday = feeRule.missing
+    ? null
+    : exchangeRule.missing
+      ? feeCloseTodayPerLot
+      : Math.max(feeCloseTodayPerLot - exchangeToday, 0);
   return {
     ...position,
     feeRule,
+    exchangeRule,
     feePerLot,
     feeClosePerLot,
     feeCloseTodayPerLot,
-    totalCost: position.marginPerLot + feePerLot,
+    exchangeOpen,
+    exchangeClose,
+    exchangeToday,
+    commissionOpen,
+    commissionClose,
+    commissionToday,
+    totalCost: position.marginPerLot + exchangeOpen + (commissionOpen ?? 0),
   };
 }
 
@@ -455,24 +489,32 @@ function renderResult(data) {
   dom.resultContractValue.textContent = hasPrice ? money(data.contractValue) : "—";
   dom.resultMarginPerLot.textContent = data.marginPerLot > 0 ? money(data.marginPerLot) : "—";
   const feeMissing = Boolean(data.feeRule.missing);
-  const feeText = (value) => {
-    if (!hasPrice) return "待取价";
-    if (feeMissing) return "未公布";
-    return value > 0 ? money(value) : "无";
+  const exchangeMissing = Boolean(data.exchangeRule.missing);
+  const writeFee = (element, value, missing) => {
+    const display = !hasPrice
+      ? "待取价"
+      : missing
+        ? "未公布"
+        : value > 0
+          ? money(value)
+          : "无";
+    element.textContent = display;
+    element.classList.toggle("is-none", hasPrice && !missing && !(value > 0));
+    element.classList.toggle("is-missing", missing);
   };
-  const setFee = (element, value) => {
-    element.textContent = feeText(value);
-    element.classList.toggle("is-none", hasPrice && !feeMissing && !(value > 0));
-    element.classList.toggle("is-missing", feeMissing);
-  };
-  setFee(dom.resultFeePerLot, data.feePerLot);
-  setFee(dom.resultFeeClose, data.feeClosePerLot);
-  setFee(dom.resultFeeCloseToday, data.feeCloseTodayPerLot);
-  dom.feeSource.textContent = `${data.feeRule.provider}公司标准 · ${data.feeRule.asOf} · 含交易所代缴`;
+  writeFee(dom.exchangeFeeOpen, data.exchangeOpen, exchangeMissing);
+  writeFee(dom.exchangeFeeClose, data.exchangeClose, exchangeMissing);
+  writeFee(dom.exchangeFeeToday, data.exchangeToday, exchangeMissing);
+  writeFee(dom.resultFeePerLot, data.commissionOpen, feeMissing);
+  writeFee(dom.resultFeeClose, data.commissionClose, feeMissing);
+  writeFee(dom.resultFeeCloseToday, data.commissionToday, feeMissing);
+  dom.feeSource.textContent = `交易所费用 ${EXCHANGE_FEE_AS_OF} · 海证佣金 ${data.feeRule.asOf}`;
   dom.resultCostNote.textContent = hasPrice
     ? feeMissing
-      ? `保证金 ${money(data.marginPerLot)} + 海证佣金未公布`
-      : `保证金 ${money(data.marginPerLot)} + 海证开仓佣金 ${money(data.feePerLot)}（含交易所代缴）`
+      ? `保证金 ${money(data.marginPerLot)} + 交易所费用 ${money(data.exchangeOpen)} + 海证佣金未公布`
+      : exchangeMissing
+        ? `保证金 ${money(data.marginPerLot)} + 海证佣金 ${money(data.feePerLot)}（含交易所费用）`
+        : `保证金 ${money(data.marginPerLot)} + 交易所费用 ${money(data.exchangeOpen)} + 海证佣金 ${money(data.commissionOpen)}`
     : "输入主力合约价格后自动计算";
   dom.mobileResultLots.textContent = data.isValid
     ? `${data.lots} 手`
@@ -591,8 +633,10 @@ function copyResult() {
 
   const instrument = state.instrument;
   const session = getTradingHours(instrument);
+  const exchangeText = (value) =>
+    data.exchangeRule.missing ? "未公布" : value > 0 ? money(value) : "无";
   const commissionText = (value) =>
-    data.feeRule.missing ? "未公布" : value > 0 ? money(value) : "无";
+    data.feeRule.missing || value === null ? "未公布" : value > 0 ? money(value) : "无";
   const text = [
     "仓衡 · 期货仓位计算",
     `标的：${instrument.name} ${instrument.code} 主力合约（${EXCHANGES[instrument.exchange].short}）`,
@@ -611,14 +655,15 @@ function copyResult() {
     `交易单位：${instrument.unit}；合约乘数：${number(data.multiplier)}`,
     `一手标的价值：${money(data.contractValue)}`,
     `保证金率：${number(data.marginRate * 100, 2)}%；一手保证金：${money(data.marginPerLot)}`,
-    `海证期货佣金——开仓：${commissionText(data.feePerLot)}；平仓：${commissionText(data.feeClosePerLot)}；平今：${commissionText(data.feeCloseTodayPerLot)}`,
-    `一手开仓费用：${money(data.totalCost)}（保证金 + 海证开仓佣金；平仓另计）`,
+    `交易所费用——开仓：${exchangeText(data.exchangeOpen)}；平仓：${exchangeText(data.exchangeClose)}；平今：${exchangeText(data.exchangeToday)}`,
+    `海证期货佣金——开仓：${commissionText(data.commissionOpen)}；平仓：${commissionText(data.commissionClose)}；平今：${commissionText(data.commissionToday)}`,
+    `一手开仓费用：${money(data.totalCost)}（保证金 + 交易所开仓费用 + 海证开仓佣金；平仓另计）`,
     `每手风险：${money(data.riskPerLot)}；按图公式手数：${data.riskLots}；保证金可覆盖：${data.marginLots} 手`,
     data.marginShortfall
       ? `公式结果：${data.lots} 手；但保证金不足，实际应降至 ${data.marginLots} 手或增加保证金。`
       : `公式结果：${data.lots} 手；占用保证金：${money(data.usedMargin)}；剩余可用：${money(data.remaining)}`,
     "",
-    `参数基准：${DATA_AS_OF}；佣金参考：${data.feeRule.provider} ${data.feeRule.asOf}（含交易所代缴）。实际佣金以开户协商为准。`,
+    `参数基准：${DATA_AS_OF}；交易所费用参考：${EXCHANGE_FEE_AS_OF}；海证佣金参考：${data.feeRule.asOf}。实际费用以交易所和开户期货公司为准。`,
   ].join("\n");
 
   const finish = () => toast("计算明细已复制");

@@ -346,7 +346,7 @@
                 <span>主力合约一手开仓费用</span>
                 <strong id="result-total-cost">¥3,257.50</strong>
               </div>
-              <small id="result-cost-note">保证金 ¥3,250 + 海证开仓佣金 ¥7.50</small>
+              <small id="result-cost-note">保证金 ¥3,250 + 交易所费用 ¥1.50 + 海证佣金 ¥6.00</small>
               <dl class="result-cost-lines">
                 <div>
                   <dt>一手标的价值</dt>
@@ -358,24 +358,42 @@
                 </div>
               </dl>
               <div class="fee-head">
+                <span>交易所费用</span>
+                <small>参考</small>
+              </div>
+              <dl class="result-fee-lines">
+                <div>
+                  <dt>开仓费用</dt>
+                  <dd id="exchange-fee-open">¥1.50</dd>
+                </div>
+                <div>
+                  <dt>平仓费用</dt>
+                  <dd id="exchange-fee-close">¥1.50</dd>
+                </div>
+                <div>
+                  <dt>平今费用</dt>
+                  <dd id="exchange-fee-today">¥1.50</dd>
+                </div>
+              </dl>
+              <div class="fee-head">
                 <span>期货公司佣金</span>
                 <small>海证期货</small>
               </div>
               <dl class="result-fee-lines">
                 <div>
                   <dt>开仓佣金</dt>
-                  <dd id="result-fee-per-lot">¥7.50</dd>
+                  <dd id="result-fee-per-lot">¥6.00</dd>
                 </div>
                 <div>
                   <dt>平仓佣金</dt>
-                  <dd id="result-fee-close">¥7.50</dd>
+                  <dd id="result-fee-close">¥6.00</dd>
                 </div>
                 <div>
                   <dt>平今佣金</dt>
-                  <dd id="result-fee-close-today">¥7.50</dd>
+                  <dd id="result-fee-close-today">¥6.00</dd>
                 </div>
               </dl>
-              <small class="fee-source" id="fee-source">海证期货公司标准 · 含交易所代缴</small>
+              <small class="fee-source" id="fee-source">交易所费用 2026-11-02 · 海证佣金 2024-04-22</small>
             </div>
 
             <dl class="result-metrics">
@@ -539,7 +557,7 @@
         <p class="data-note">
           合约单位与报价单位依据交易所合约规则；保证金率为期货公司公示口径的参考值（数据基准日
           <time datetime="2026-10-12">2026-10-12</time>），会随行情和合约月份调整。实际标准请以开户期货公司为准。
-          期货公司佣金采用<a href="https://m.hicend.com.cn/h5/CommonArticleDetail/11493" target="_blank" rel="noopener">海证期货官网公司标准</a>（数据基准日 <time datetime="2024-04-22">2024-04-22</time>，含代缴交易所手续费）；合约月份、客户协商和交易所调整会有所差异。平今免收显示“无”，官网未公布的新品种显示“未公布”。
+          交易所费用参考 <a href="http://openctp.cn/fees.html" target="_blank" rel="noopener">OpenCTP</a> 公开数据（数据基准日 <time datetime="2026-11-02">2026-11-02</time>）；期货公司佣金采用<a href="https://m.hicend.com.cn/h5/CommonArticleDetail/11493" target="_blank" rel="noopener">海证期货官网公司标准</a>（数据基准日 <time datetime="2024-04-22">2024-04-22</time>，含代缴交易所手续费）。页面按“海证公司标准 − 交易所费用”拆分佣金，避免重复计算；平今免收显示“无”，未公布项目显示“未公布”。
           选择品种后会优先读取主力实时价；取价失败时自动使用最近参考价并在价格下方标注时间。少数无主力连续行情的品种需手动输入价格。
         </p>
       </section>
