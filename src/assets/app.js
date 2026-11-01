@@ -16,6 +16,13 @@ import {
   exchangeFeeForLot,
   getExchangeFeeRule,
 } from "./exchange-fees.js";
+import {
+  ACTIVITY_AS_OF,
+  INACTIVE_PRODUCTS,
+  activityLevel,
+  getActivitySnapshot,
+  tiedCapital,
+} from "./activity.js";
 
 const $ = (selector, root = document) => root.querySelector(selector);
 const $$ = (selector, root = document) => [...root.querySelectorAll(selector)];
@@ -32,6 +39,12 @@ const dom = {
   selectionNote: $("#selected-note"),
   selectionUnit: $("#selected-unit"),
   selectionQuote: $("#selected-quote"),
+  activityCard: $("#activity-card"),
+  activityBadge: $("#activity-badge"),
+  activityVolume: $("#activity-volume"),
+  activityOi: $("#activity-oi"),
+  activityCapital: $("#activity-capital"),
+  activityNote: $("#activity-note"),
   balance: $("#balance"),
   risk: $("#risk"),
   riskNumber: $("#risk-number"),
@@ -565,6 +578,63 @@ function renderResult(data) {
   dom.warning.textContent = messages.join("；");
 }
 
+function formatLots(value) {
+  if (!(value > 0)) return "—";
+  return `${new Intl.NumberFormat("zh-CN").format(Math.round(value))} 手`;
+}
+
+function formatCompactMoney(value) {
+  if (!(value > 0)) return "无";
+  if (value >= 100_000_000) return `¥${(value / 100_000_000).toFixed(1)}亿`;
+  if (value >= 10_000) return `¥${(value / 10_000).toFixed(1)}万`;
+  return money(value);
+}
+
+function renderActivity() {
+  const instrument = state.instrument;
+  const snapshot = getActivitySnapshot(instrument);
+  const liveVolume = state.quote?.volume > 0 ? state.quote.volume : null;
+  const liveOpenInterest = state.quote?.openInterest > 0 ? state.quote.openInterest : null;
+  const openInterest = liveOpenInterest ?? snapshot.openInterest ?? 0;
+  const reference = referenceFor(instrument);
+  const price = state.quote?.price ?? (snapshot.price > 0 ? snapshot.price : reference?.price ?? 0);
+  const marginValue = Number(dom.margin.value);
+  const marginRate = Number.isFinite(marginValue) ? marginValue / 100 : instrument.marginRate;
+  const capital = tiedCapital(openInterest, price, instrument.multiplier, marginRate);
+  const amount = state.quote?.amount > 0 ? state.quote.amount : null;
+  const estimatedVolume =
+    !liveVolume && amount && price > 0 ? amount / (price * instrument.multiplier) : null;
+  const volume = liveVolume ?? estimatedVolume;
+  const unknown = snapshot.missing && !(openInterest > 0) && !INACTIVE_PRODUCTS.has(instrument.id);
+  const level = unknown ? "unknown" : activityLevel(instrument, { openInterest, volume });
+
+  dom.activityCard.dataset.level = level;
+  dom.activityBadge.textContent =
+    level === "inactive"
+      ? "不活跃 · 建议不参与"
+      : level === "watch"
+        ? "流动性一般"
+        : level === "active"
+          ? "活跃"
+          : "数据不足";
+  dom.activityVolume.textContent = volume ? formatLots(volume) : "—";
+  dom.activityOi.textContent = formatLots(openInterest);
+  dom.activityCapital.textContent = formatCompactMoney(capital);
+  const volumeHint = estimatedVolume ? "成交量按成交额估算。" : "";
+
+  if (level === "inactive") {
+    dom.activityNote.textContent = `交易不活跃，建议不参与。${volumeHint}活动性参考 ${ACTIVITY_AS_OF}。`;
+  } else if (level === "watch") {
+    dom.activityNote.textContent = `流动性一般，注意滑点和成交速度。${volumeHint}活动性参考 ${ACTIVITY_AS_OF}。`;
+  } else if (level === "active") {
+    dom.activityNote.textContent = volume
+      ? `主力合约成交与持仓充足，交易活跃。${volumeHint}参考 ${ACTIVITY_AS_OF}。`
+      : `持仓量充足，交易活跃；成交量暂缺，按持仓量判断。参考 ${ACTIVITY_AS_OF}。`;
+  } else {
+    dom.activityNote.textContent = "活动性数据不足，请谨慎参与。";
+  }
+}
+
 function update() {
   const riskValue = Number(dom.riskNumber.value);
   if (Number.isFinite(riskValue)) {
@@ -572,6 +642,7 @@ function update() {
   }
   refreshClearButtons();
   renderResult(readForm());
+  renderActivity();
 }
 
 async function getQuote({ auto = false, silent = false } = {}) {

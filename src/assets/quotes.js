@@ -50,8 +50,16 @@ export function fetchMainQuote(instrument, { timeout = 7000 } = {}) {
         return;
       }
 
+      const optionalNumber = (value) => {
+        const parsed = Number(value);
+        return Number.isFinite(parsed) && parsed > 0 ? parsed : null;
+      };
+
       finish(resolve, {
         price,
+        volume: optionalNumber(data.f47),
+        amount: optionalNumber(data.f48),
+        openInterest: optionalNumber(data.f49),
         code: data.f57 || instrument.code,
         name: data.f58 || instrument.name,
         fetchedAt: new Date(),
@@ -65,7 +73,7 @@ export function fetchMainQuote(instrument, { timeout = 7000 } = {}) {
     script.onerror = () => finish(reject, new Error("行情接口连接失败"));
     const query = new URLSearchParams({
       secid: quoteSecId(instrument),
-      fields: "f43,f57,f58,f59",
+      fields: "f43,f47,f48,f49,f57,f58,f59",
       cb: callbackName,
       _: String(Date.now()),
     });

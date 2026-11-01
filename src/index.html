@@ -164,6 +164,27 @@
                   <span id="selected-quote">元/吨</span>
                 </div>
               </div>
+              <div class="activity-card" id="activity-card" data-level="active" aria-live="polite">
+                <div class="activity-head">
+                  <span class="activity-title">主力合约活动性</span>
+                  <span class="activity-badge" id="activity-badge">活跃</span>
+                </div>
+                <dl class="activity-metrics">
+                  <div>
+                    <dt>成交量</dt>
+                    <dd id="activity-volume">—</dd>
+                  </div>
+                  <div>
+                    <dt>持仓量</dt>
+                    <dd id="activity-oi">—</dd>
+                  </div>
+                  <div>
+                    <dt>沉淀资金</dt>
+                    <dd id="activity-capital">—</dd>
+                  </div>
+                </dl>
+                <p class="activity-note" id="activity-note">按主力合约持仓量判断</p>
+              </div>
             </div>
 
             <div class="field-grid">
@@ -558,6 +579,7 @@
           合约单位与报价单位依据交易所合约规则；保证金率为期货公司公示口径的参考值（数据基准日
           <time datetime="2026-10-12">2026-10-12</time>），会随行情和合约月份调整。实际标准请以开户期货公司为准。
           交易所费用参考 <a href="http://openctp.cn/fees.html" target="_blank" rel="noopener">OpenCTP</a> 公开数据（数据基准日 <time datetime="2026-11-02">2026-11-02</time>）；期货公司佣金采用<a href="https://m.hicend.com.cn/h5/CommonArticleDetail/11493" target="_blank" rel="noopener">海证期货官网公司标准</a>（数据基准日 <time datetime="2024-04-22">2024-04-22</time>，含代缴交易所手续费）。页面按“海证公司标准 − 交易所费用”拆分佣金，避免重复计算；平今免收显示“无”，未公布项目显示“未公布”。
+          活动性快照取 OpenCTP 2026-11-02 持仓量最大的合约；成交量优先使用实时行情，缺失时显示“—”。沉淀资金按“持仓量 × 参考价 × 合约乘数 × 保证金率”估算，仅用于活动性判断。
           选择品种后会优先读取主力实时价；取价失败时自动使用最近参考价并在价格下方标注时间。少数无主力连续行情的品种需手动输入价格。
         </p>
       </section>
