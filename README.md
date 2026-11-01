@@ -70,15 +70,16 @@ npm run preview
 
 ### 主力数据刷新
 
-实时行情读取主连，主力换月后页面会自动跟随。静态参考价和活动性快照可通过以下脚本刷新：
+实时行情读取主连，主力换月后页面会自动跟随。`.github/workflows/refresh-data.yml` 会在每个交易日 **08:30（北京时间）** 自动执行：
 
 ```text
 npm run prices                              # 刷新主连参考价
 node scripts/fetch-activity.mjs             # 重新选择持仓量最大的主力合约
 npm test
+git commit / push → 触发 Pages 部署
 ```
 
-待推送的 `refresh-data.yml` 可将这两步配置为每交易日 08:30 自动执行，但推送该工作流需要 Token 具备 **Workflows: Read and write** 权限。启用后推送工作流即可，无需手工改品种表。
+因此主力换月后，参考价和活动性快照会在下一个交易日自动跟随，不需要手工改品种表。需要立即刷新时也可在 Actions 页面手动运行 `Refresh main-contract data`。
 
 ## 部署到 Cloudflare Pages（备份站）
 
