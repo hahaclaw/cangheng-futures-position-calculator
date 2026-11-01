@@ -116,14 +116,19 @@ export function getActivitySnapshot(instrument) {
   return SNAPSHOT[instrument.id] ?? { missing: true };
 }
 
-export function activityLevel(instrument, { openInterest, volume = null } = {}) {
+export function activityLevel(instrument, { openInterest, volume = null, capital = null } = {}) {
   if (INACTIVE_PRODUCTS.has(instrument.id)) return "inactive";
 
   const oi = Number(openInterest) || 0;
   const vol = Number(volume) || 0;
+  const cap = Number(capital) > 0 ? Number(capital) : null;
 
-  if (oi < 10_000 || (vol > 0 && vol < 1_000)) return "inactive";
-  if (oi < 50_000 || (vol > 0 && vol < 5_000)) return "watch";
+  if (oi < 20_000 || (cap !== null && cap < 200_000_000) || (vol > 0 && vol < 2_000)) {
+    return "inactive";
+  }
+  if (oi < 100_000 || (cap !== null && cap < 1_000_000_000) || (vol > 0 && vol < 10_000)) {
+    return "watch";
+  }
   return "active";
 }
 

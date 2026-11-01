@@ -606,16 +606,16 @@ function renderActivity() {
     !liveVolume && amount && price > 0 ? amount / (price * instrument.multiplier) : null;
   const volume = liveVolume ?? estimatedVolume;
   const unknown = snapshot.missing && !(openInterest > 0) && !INACTIVE_PRODUCTS.has(instrument.id);
-  const level = unknown ? "unknown" : activityLevel(instrument, { openInterest, volume });
+  const level = unknown ? "unknown" : activityLevel(instrument, { openInterest, volume, capital });
 
   dom.activityCard.dataset.level = level;
   dom.activityBadge.textContent =
     level === "inactive"
       ? "不活跃 · 建议不参与"
       : level === "watch"
-        ? "流动性一般"
+        ? "一般 · 谨慎参与"
         : level === "active"
-          ? "活跃"
+          ? "活跃 · 可参与"
           : "数据不足";
   dom.activityVolume.textContent = volume ? formatLots(volume) : "—";
   dom.activityOi.textContent = formatLots(openInterest);
@@ -625,11 +625,11 @@ function renderActivity() {
   if (level === "inactive") {
     dom.activityNote.textContent = `交易不活跃，建议不参与。${volumeHint}活动性参考 ${ACTIVITY_AS_OF}。`;
   } else if (level === "watch") {
-    dom.activityNote.textContent = `流动性一般，注意滑点和成交速度。${volumeHint}活动性参考 ${ACTIVITY_AS_OF}。`;
+    dom.activityNote.textContent = `活跃度一般，注意滑点和成交速度。${volumeHint}活动性参考 ${ACTIVITY_AS_OF}。`;
   } else if (level === "active") {
     dom.activityNote.textContent = volume
-      ? `主力合约成交与持仓充足，交易活跃。${volumeHint}参考 ${ACTIVITY_AS_OF}。`
-      : `持仓量充足，交易活跃；成交量暂缺，按持仓量判断。参考 ${ACTIVITY_AS_OF}。`;
+      ? `成交、持仓与沉淀资金达到活跃门槛。${volumeHint}参考 ${ACTIVITY_AS_OF}。`
+      : `持仓与沉淀资金达到活跃门槛；成交量暂缺，按持仓判断。参考 ${ACTIVITY_AS_OF}。`;
   } else {
     dom.activityNote.textContent = "活动性数据不足，请谨慎参与。";
   }

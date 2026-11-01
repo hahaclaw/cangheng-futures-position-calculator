@@ -1087,27 +1087,32 @@ ul {
 }
 
 .activity-badge {
-  padding: 2px 7px;
+  padding: 3px 9px;
+  border: 1px solid #a9cdea;
   border-radius: 999px;
-  background: var(--accent);
-  color: #ffffff;
+  background: #dceeff;
+  color: #1d5f96;
   font-size: 8px;
+  font-weight: 700;
   line-height: 1.4;
 }
 
 .activity-card[data-level="watch"] .activity-badge {
-  background: var(--warning);
-  color: var(--ink);
+  border-color: #e7c17a;
+  background: #fff0d1;
+  color: #8a5a10;
 }
 
 .activity-card[data-level="inactive"] .activity-badge {
-  background: var(--danger);
+  border-color: #b23a3a;
+  background: #c74444;
   color: #ffffff;
 }
 
 .activity-card[data-level="unknown"] .activity-badge {
-  background: var(--muted-light);
-  color: #ffffff;
+  border-color: #b4c2cf;
+  background: #e9eef4;
+  color: #53687c;
 }
 
 .activity-metrics {
@@ -1135,15 +1140,29 @@ ul {
 }
 
 .activity-note {
-  margin: 5px 0 0;
-  color: var(--muted);
+  margin: 6px 0 0;
+  padding: 5px 7px;
+  border-radius: 3px;
+  background: #f1f8ff;
+  color: #2b5f94;
   font-size: 8px;
   line-height: 1.5;
 }
 
+.activity-card[data-level="watch"] .activity-note {
+  background: #fff8eb;
+  color: #8a5a10;
+}
+
 .activity-card[data-level="inactive"] .activity-note {
-  color: var(--danger);
+  background: #fdecec;
+  color: #a83232;
   font-weight: 700;
+}
+
+.activity-card[data-level="unknown"] .activity-note {
+  background: #f3f6f9;
+  color: #65788b;
 }
 
 .selection-code {

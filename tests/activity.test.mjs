@@ -31,10 +31,22 @@ test("活动性快照覆盖全部品种", () => {
 test("活跃度定性判断", () => {
   assert.equal(activityLevel(getInstrument("m"), { openInterest: 2_040_376 }), "active");
   assert.equal(activityLevel(getInstrument("sc"), { openInterest: 29_929 }), "watch");
-  assert.equal(activityLevel(getInstrument("ec"), { openInterest: 15_349 }), "watch");
+  assert.equal(activityLevel(getInstrument("ec"), { openInterest: 15_349 }), "inactive");
   assert.equal(activityLevel(getInstrument("jr"), { openInterest: 0 }), "inactive");
   assert.equal(activityLevel(getInstrument("m"), { openInterest: 60_000, volume: 2_000 }), "watch");
   assert.equal(activityLevel(getInstrument("m"), { openInterest: 60_000, volume: 500 }), "inactive");
+  assert.equal(
+    activityLevel(getInstrument("m"), { openInterest: 2_000_000, capital: 100_000_000 }),
+    "inactive",
+  );
+  assert.equal(
+    activityLevel(getInstrument("m"), { openInterest: 2_000_000, capital: 500_000_000 }),
+    "watch",
+  );
+  assert.equal(
+    activityLevel(getInstrument("m"), { openInterest: 2_000_000, capital: 6_000_000_000 }),
+    "active",
+  );
 });
 
 test("沉淀资金计算", () => {
