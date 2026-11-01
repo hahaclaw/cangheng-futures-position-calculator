@@ -122,6 +122,7 @@ export function getFeeRule(instrument) {
     return {
       type: "fixed",
       open: fixed,
+      close: fixed,
       closeToday: CLOSE_OVERRIDES[instrument.id] ?? fixed,
       unit: "元/手",
       asOf: FEE_AS_OF,
@@ -133,6 +134,7 @@ export function getFeeRule(instrument) {
     return {
       type: "rate",
       open: rate / 10000,
+      close: rate / 10000,
       closeToday: (CLOSE_OVERRIDES[instrument.id] ?? rate) / 10000,
       rateTenThousandths: rate,
       unit: "成交额比例",
@@ -140,10 +142,18 @@ export function getFeeRule(instrument) {
     };
   }
 
-  return { type: "fixed", open: 0, closeToday: 0, unit: "元/手", asOf: FEE_AS_OF };
+  return {
+    type: "fixed",
+    open: 0,
+    close: 0,
+    closeToday: 0,
+    unit: "元/手",
+    asOf: FEE_AS_OF,
+  };
 }
 
-export function feeForLot(rule, contractValue) {
+export function feeForLot(rule, contractValue, kind = "open") {
   if (!Number.isFinite(contractValue) || contractValue <= 0) return 0;
-  return rule.type === "rate" ? contractValue * rule.open : rule.open;
+  const value = rule[kind] ?? 0;
+  return rule.type === "rate" ? contractValue * value : value;
 }

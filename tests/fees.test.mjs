@@ -16,8 +16,11 @@ test("每个品种都有可用的参考手续费规则", () => {
 
 test("固定手续费品种", () => {
   assert.equal(getFeeRule(getInstrument("m")).open, 9);
+  assert.equal(getFeeRule(getInstrument("m")).close, 9);
+  assert.equal(getFeeRule(getInstrument("m")).closeToday, 9);
   assert.equal(getFeeRule(getInstrument("p")).open, 15);
   assert.equal(getFeeRule(getInstrument("ap")).open, 30);
+  assert.equal(getFeeRule(getInstrument("ap")).close, 30);
   assert.equal(getFeeRule(getInstrument("ap")).closeToday, 60);
   assert.equal(getFeeRule(getInstrument("t")).open, 18);
 });
@@ -26,8 +29,11 @@ test("成交额比例手续费品种", () => {
   const copper = getFeeRule(getInstrument("cu"));
   assert.equal(copper.type, "rate");
   assert.equal(copper.open, 0.0003);
+  assert.equal(copper.close, 0.0003);
   assert.equal(copper.closeToday, 0.0006);
   assert.ok(Math.abs(feeForLot(copper, 100_000) - 30) < 1e-9);
+  assert.ok(Math.abs(feeForLot(copper, 100_000, "close") - 30) < 1e-9);
+  assert.ok(Math.abs(feeForLot(copper, 100_000, "closeToday") - 60) < 1e-9);
 
   const index = getFeeRule(getInstrument("if"));
   assert.equal(index.open, 0.000138);
@@ -35,4 +41,12 @@ test("成交额比例手续费品种", () => {
 
   const ec = getFeeRule(getInstrument("ec"));
   assert.equal(ec.open, 0.0036);
+  assert.equal(ec.closeToday, 0.0072);
+});
+
+test("零手续费返回 0，页面可显示为无", () => {
+  const rule = { type: "fixed", open: 0, close: 0, closeToday: 0 };
+  assert.equal(feeForLot(rule, 100_000, "open"), 0);
+  assert.equal(feeForLot(rule, 100_000, "close"), 0);
+  assert.equal(feeForLot(rule, 100_000, "closeToday"), 0);
 });

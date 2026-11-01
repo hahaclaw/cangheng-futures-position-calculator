@@ -56,6 +56,8 @@ const dom = {
   resultContractValue: $("#result-contract-value"),
   resultMarginPerLot: $("#result-margin-per-lot"),
   resultFeePerLot: $("#result-fee-per-lot"),
+  resultFeeClose: $("#result-fee-close"),
+  resultFeeCloseToday: $("#result-fee-close-today"),
   metricRiskBudget: $("#metric-risk-budget"),
   metricRiskPerLot: $("#metric-risk-per-lot"),
   metricContractValue: $("#metric-contract-value"),
@@ -394,11 +396,15 @@ function readForm() {
     direction: state.direction,
   });
   const feeRule = getFeeRule(state.instrument);
-  const feePerLot = feeForLot(feeRule, position.contractValue);
+  const feePerLot = feeForLot(feeRule, position.contractValue, "open");
+  const feeClosePerLot = feeForLot(feeRule, position.contractValue, "close");
+  const feeCloseTodayPerLot = feeForLot(feeRule, position.contractValue, "closeToday");
   return {
     ...position,
     feeRule,
     feePerLot,
+    feeClosePerLot,
+    feeCloseTodayPerLot,
     totalCost: position.marginPerLot + feePerLot,
   };
 }
@@ -447,9 +453,16 @@ function renderResult(data) {
   dom.resultTotalCost.classList.toggle("is-placeholder", !hasPrice);
   dom.resultContractValue.textContent = hasPrice ? money(data.contractValue) : "—";
   dom.resultMarginPerLot.textContent = data.marginPerLot > 0 ? money(data.marginPerLot) : "—";
-  dom.resultFeePerLot.textContent = hasPrice ? money(data.feePerLot) : "—";
+  const feeText = (value) => (hasPrice ? (value > 0 ? money(value) : "无") : "待取价");
+  const setFee = (element, value) => {
+    element.textContent = feeText(value);
+    element.classList.toggle("is-none", hasPrice && !(value > 0));
+  };
+  setFee(dom.resultFeePerLot, data.feePerLot);
+  setFee(dom.resultFeeClose, data.feeClosePerLot);
+  setFee(dom.resultFeeCloseToday, data.feeCloseTodayPerLot);
   dom.resultCostNote.textContent = hasPrice
-    ? `保证金 ${money(data.marginPerLot)} + 开仓手续费 ${money(data.feePerLot)}（参考 ${data.feeRule.asOf}）`
+    ? `保证金 ${money(data.marginPerLot)} + 开仓手续费 ${money(data.feePerLot)}（参考 ${data.feeRule.asOf}；平仓另计）`
     : "输入主力合约价格后自动计算";
   dom.mobileResultLots.textContent = data.isValid
     ? `${data.lots} 手`
@@ -586,7 +599,8 @@ function copyResult() {
     `交易单位：${instrument.unit}；合约乘数：${number(data.multiplier)}`,
     `一手标的价值：${money(data.contractValue)}`,
     `保证金率：${number(data.marginRate * 100, 2)}%；一手保证金：${money(data.marginPerLot)}`,
-    `开仓手续费参考：${money(data.feePerLot)}；一手合计费用：${money(data.totalCost)}`,
+    `开仓手续费参考：${money(data.feePerLot)}；平仓手续费参考：${money(data.feeClosePerLot)}；平今手续费参考：${money(data.feeCloseTodayPerLot)}`,
+    `一手开仓费用：${money(data.totalCost)}（保证金 + 开仓手续费；平仓另计）`,
     `每手风险：${money(data.riskPerLot)}；按图公式手数：${data.riskLots}；保证金可覆盖：${data.marginLots} 手`,
     data.marginShortfall
       ? `公式结果：${data.lots} 手；但保证金不足，实际应降至 ${data.marginLots} 手或增加保证金。`
