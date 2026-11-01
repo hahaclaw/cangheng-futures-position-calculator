@@ -32,6 +32,7 @@ const dom = {
   search: $("#instrument-search"),
   clearSearch: $("#clear-search"),
   combo: $("#instrument-combobox"),
+  searchExchange: $("#search-exchange"),
   results: $("#instrument-results"),
   selectionCode: $("#selected-code"),
   selectionExchange: $("#selected-exchange"),
@@ -114,6 +115,7 @@ const state = {
   quote: null,
   comboItems: [],
   activeComboIndex: -1,
+  searchExchange: "all",
   libraryExchange: "all",
   libraryQuery: "",
   toastTimer: null,
@@ -203,7 +205,7 @@ function refreshClearButtons() {
     const button = shell.querySelector(".input-clear");
     if (input && button) button.hidden = !input.value;
   });
-  if (dom.clearSearch) dom.clearSearch.hidden = !dom.search.value;
+  if (dom.clearSearch) dom.clearSearch.hidden = false;
   if (dom.clearRisk) dom.clearRisk.hidden = !dom.riskNumber.value;
 }
 
@@ -230,7 +232,7 @@ function initClearButtons() {
 
   dom.clearSearch.addEventListener("click", () => {
     dom.search.value = "";
-    dom.clearSearch.hidden = true;
+    dom.clearSearch.hidden = false;
     openCombo();
     dom.search.focus();
   });
@@ -308,7 +310,11 @@ function setActiveCombo(index) {
 }
 
 function renderCombo(query) {
-  const matches = query.trim() ? searchInstruments(query, 8) : INSTRUMENTS.slice(0, 8);
+  let matches = query.trim() ? searchInstruments(query, 200) : INSTRUMENTS;
+  if (state.searchExchange !== "all") {
+    matches = matches.filter((instrument) => instrument.exchange === state.searchExchange);
+  }
+  matches = matches.slice(0, 8);
   dom.results.replaceChildren();
   state.comboItems = [];
   state.activeComboIndex = -1;
@@ -316,7 +322,10 @@ function renderCombo(query) {
   if (!matches.length) {
     const empty = document.createElement("p");
     empty.className = "combo-empty";
-    empty.textContent = "没有找到这个品种，试试名称、代码或去掉合约月份。";
+    empty.textContent =
+      state.searchExchange === "all"
+        ? "没有找到这个品种，试试名称、代码或去掉合约月份。"
+        : `当前${EXCHANGES[state.searchExchange].short}筛选下没有找到，试试其他交易所或清除筛选。`;
     dom.results.append(empty);
   } else {
     matches.forEach((instrument, index) => {
@@ -821,6 +830,10 @@ function handleSubmit(event) {
 }
 
 function bindEvents() {
+  $$(".exchange-chip", dom.searchExchange).forEach((chip) => {
+    chip.setAttribute("aria-pressed", chip.classList.contains("is-active") ? "true" : "false");
+  });
+
   dom.search.addEventListener("focus", () => {
     openCombo();
   });
@@ -833,6 +846,18 @@ function bindEvents() {
     renderCombo(dom.search.value);
     refreshClearButtons();
     state.activeComboIndex = -1;
+  });
+
+  dom.searchExchange.addEventListener("click", (event) => {
+    const button = event.target.closest("button[data-exchange]");
+    if (!button) return;
+    state.searchExchange = button.dataset.exchange;
+    $$(".exchange-chip", dom.searchExchange).forEach((chip) => {
+      chip.classList.toggle("is-active", chip === button);
+      chip.setAttribute("aria-pressed", chip === button ? "true" : "false");
+    });
+    renderCombo(dom.search.value);
+    dom.search.focus();
   });
 
   dom.search.addEventListener("keydown", (event) => {
@@ -852,9 +877,19 @@ function bindEvents() {
         if (instrument) selectInstrument(instrument);
       } else if (dom.search.value.trim()) {
         event.preventDefault();
-        const match = bestMatch(dom.search.value);
+        const match =
+          state.searchExchange === "all"
+            ? bestMatch(dom.search.value)
+            : searchInstruments(dom.search.value, 200).find(
+                (instrument) => instrument.exchange === state.searchExchange,
+              );
         if (match) selectInstrument(match);
-        else toast("没有找到这个品种，试试其他名称或代码");
+        else
+          toast(
+            state.searchExchange === "all"
+              ? "没有找到这个品种，试试其他名称或代码"
+              : `当前${EXCHANGES[state.searchExchange].short}筛选下没有找到这个品种`,
+          );
       }
     } else if (event.key === "Escape") {
       closeCombo();

@@ -858,6 +858,45 @@ ul {
   margin-left: 6px;
 }
 
+.search-exchange {
+  display: flex;
+  gap: 5px;
+  margin: 1px 0 7px;
+  padding-bottom: 1px;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+.search-exchange::-webkit-scrollbar {
+  display: none;
+}
+
+.exchange-chip {
+  flex: none;
+  padding: 4px 9px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: #ffffff;
+  color: var(--muted);
+  font-size: 9px;
+  line-height: 1.3;
+  transition:
+    background 150ms ease,
+    color 150ms ease,
+    border-color 150ms ease;
+}
+
+.exchange-chip:hover {
+  border-color: var(--accent);
+  color: var(--accent-dark);
+}
+
+.exchange-chip.is-active {
+  background: var(--ink-deep);
+  border-color: var(--ink-deep);
+  color: var(--lime);
+}
+
 .risk-clear {
   width: 16px;
   height: 16px;
@@ -3219,6 +3258,11 @@ input[type="range"]::-moz-range-thumb {
 @media (max-width: 600px) {
   .hero-inner {
     padding: 32px 18px 34px;
+  }
+
+  .search-exchange {
+    flex-wrap: wrap;
+    overflow: visible;
   }
 
   .eyebrow {
