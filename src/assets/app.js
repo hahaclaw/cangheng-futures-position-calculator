@@ -58,6 +58,7 @@ const dom = {
   resultFeePerLot: $("#result-fee-per-lot"),
   resultFeeClose: $("#result-fee-close"),
   resultFeeCloseToday: $("#result-fee-close-today"),
+  feeSource: $("#fee-source"),
   metricRiskBudget: $("#metric-risk-budget"),
   metricRiskPerLot: $("#metric-risk-per-lot"),
   metricContractValue: $("#metric-contract-value"),
@@ -453,16 +454,25 @@ function renderResult(data) {
   dom.resultTotalCost.classList.toggle("is-placeholder", !hasPrice);
   dom.resultContractValue.textContent = hasPrice ? money(data.contractValue) : "—";
   dom.resultMarginPerLot.textContent = data.marginPerLot > 0 ? money(data.marginPerLot) : "—";
-  const feeText = (value) => (hasPrice ? (value > 0 ? money(value) : "无") : "待取价");
+  const feeMissing = Boolean(data.feeRule.missing);
+  const feeText = (value) => {
+    if (!hasPrice) return "待取价";
+    if (feeMissing) return "未公布";
+    return value > 0 ? money(value) : "无";
+  };
   const setFee = (element, value) => {
     element.textContent = feeText(value);
-    element.classList.toggle("is-none", hasPrice && !(value > 0));
+    element.classList.toggle("is-none", hasPrice && !feeMissing && !(value > 0));
+    element.classList.toggle("is-missing", feeMissing);
   };
   setFee(dom.resultFeePerLot, data.feePerLot);
   setFee(dom.resultFeeClose, data.feeClosePerLot);
   setFee(dom.resultFeeCloseToday, data.feeCloseTodayPerLot);
+  dom.feeSource.textContent = `${data.feeRule.provider}公司标准 · ${data.feeRule.asOf} · 含交易所代缴`;
   dom.resultCostNote.textContent = hasPrice
-    ? `保证金 ${money(data.marginPerLot)} + 开仓手续费 ${money(data.feePerLot)}（参考 ${data.feeRule.asOf}；平仓另计）`
+    ? feeMissing
+      ? `保证金 ${money(data.marginPerLot)} + 海证佣金未公布`
+      : `保证金 ${money(data.marginPerLot)} + 海证开仓佣金 ${money(data.feePerLot)}（含交易所代缴）`
     : "输入主力合约价格后自动计算";
   dom.mobileResultLots.textContent = data.isValid
     ? `${data.lots} 手`
@@ -581,6 +591,8 @@ function copyResult() {
 
   const instrument = state.instrument;
   const session = getTradingHours(instrument);
+  const commissionText = (value) =>
+    data.feeRule.missing ? "未公布" : value > 0 ? money(value) : "无";
   const text = [
     "仓衡 · 期货仓位计算",
     `标的：${instrument.name} ${instrument.code} 主力合约（${EXCHANGES[instrument.exchange].short}）`,
@@ -599,14 +611,14 @@ function copyResult() {
     `交易单位：${instrument.unit}；合约乘数：${number(data.multiplier)}`,
     `一手标的价值：${money(data.contractValue)}`,
     `保证金率：${number(data.marginRate * 100, 2)}%；一手保证金：${money(data.marginPerLot)}`,
-    `开仓手续费参考：${money(data.feePerLot)}；平仓手续费参考：${money(data.feeClosePerLot)}；平今手续费参考：${money(data.feeCloseTodayPerLot)}`,
-    `一手开仓费用：${money(data.totalCost)}（保证金 + 开仓手续费；平仓另计）`,
+    `海证期货佣金——开仓：${commissionText(data.feePerLot)}；平仓：${commissionText(data.feeClosePerLot)}；平今：${commissionText(data.feeCloseTodayPerLot)}`,
+    `一手开仓费用：${money(data.totalCost)}（保证金 + 海证开仓佣金；平仓另计）`,
     `每手风险：${money(data.riskPerLot)}；按图公式手数：${data.riskLots}；保证金可覆盖：${data.marginLots} 手`,
     data.marginShortfall
       ? `公式结果：${data.lots} 手；但保证金不足，实际应降至 ${data.marginLots} 手或增加保证金。`
       : `公式结果：${data.lots} 手；占用保证金：${money(data.usedMargin)}；剩余可用：${money(data.remaining)}`,
     "",
-    `参数基准：${DATA_AS_OF}；手续费参考：${data.feeRule.asOf}。保证金与手续费请以期货公司实际标准为准。`,
+    `参数基准：${DATA_AS_OF}；佣金参考：${data.feeRule.provider} ${data.feeRule.asOf}（含交易所代缴）。实际佣金以开户协商为准。`,
   ].join("\n");
 
   const finish = () => toast("计算明细已复制");

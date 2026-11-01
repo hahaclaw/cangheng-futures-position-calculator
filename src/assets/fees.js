@@ -1,143 +1,185 @@
 /**
- * 期货品种参考手续费。
+ * 海证期货公司标准手续费（佣金）参考。
  *
- * 数据来源：公开期货公司代理手续费标准（数据基准日 2026-11-02）。
- * 手续费分两种：固定金额（元/手）或成交额比例。
- * rate 字段使用“万分之几”表示，例如 1.2 表示成交额的万分之 1.2。
- * 实际手续费因期货公司、合约月份、平今/平昨而异，页面仅作参考。
+ * 数据来源：海证期货官网《关于调整公司标准手续费的通知》，
+ * 公司标准自 2024-04-22 交易起执行。
+ * 官方说明：公司标准手续费中包含海证期货为客户代缴的交易所手续费。
+ *
+ * 手续费分两种：固定金额（元/手）或成交额比例（万分之几）。
+ * 表中“平今免收”记为 0，页面显示“无”；“开平减半”按开仓标准的一半计算。
+ * 实际佣金因客户协商、合约月份和交易所调整而异，页面仅作参考。
  */
 
-export const FEE_AS_OF = "2026-11-02";
+export const FEE_PROVIDER = "海证期货";
+export const FEE_AS_OF = "2024-04-22";
+export const FEE_INCLUDES_EXCHANGE = true;
+
+// 海证官网 2024 标准未单列这些新品种，页面显示“未公布”。
+export const FEE_MISSING = new Set(["ad", "op", "pr", "pl", "lg", "bz", "ps", "pd", "pt"]);
 
 const FIXED = {
-  al: 18,
+  a: 10,
+  al: 12,
   ap: 30,
-  au: 60,
-  ni: 18,
-  ru: 18,
-  sn: 18,
-  ss: 12,
-  zn: 18,
-  a: 12,
-  b: 6,
-  bz: 18,
-  c: 7.2,
-  cs: 9,
-  eb: 6,
-  eg: 18,
-  l: 6,
-  m: 9,
-  p: 15,
-  pg: 36,
-  pp: 6,
-  rr: 6,
-  v: 6,
-  y: 15,
+  au: 12,
+  b: 5,
+  c: 4.8,
   cf: 25.8,
   cj: 18,
-  cy: 6,
-  fg: 12,
-  jr: 18,
-  lr: 18,
-  oi: 12,
-  pf: 12,
-  pk: 12,
-  pl: 18,
-  pm: 180,
-  ri: 15,
-  rm: 9,
-  rs: 12,
-  sf: 12,
-  sm: 12,
-  sr: 12,
+  cs: 6,
+  cy: 12,
+  eb: 15,
+  eg: 18,
+  fg: 36,
+  jr: 9,
+  l: 5,
+  lr: 9,
+  m: 7.5,
+  ni: 18,
+  oi: 10,
+  p: 10,
+  pf: 15,
+  pg: 36,
+  pk: 20,
+  pm: 150,
+  pp: 4,
+  ri: 12.5,
+  rm: 7.5,
+  rr: 2,
+  rs: 10,
+  ru: 18,
+  sc: 100,
+  sf: 15,
+  sm: 15,
+  sn: 9,
+  sr: 18,
+  ss: 4,
+  t: 15,
   ta: 18,
-  wh: 180,
-  zc: 900,
-  tl: 18,
-  t: 18,
-  tf: 18,
-  ts: 18,
-  sc: 120,
+  tf: 15,
+  tl: 15,
+  ts: 15,
+  v: 2,
+  wh: 60,
+  y: 10,
+  zc: 150,
+  zn: 9,
 };
 
 const RATE = {
-  ad: 3,
   ag: 0.6,
   ao: 6,
-  br: 1.2,
-  bu: 3,
-  cu: 3,
+  bb: 5,
+  bc: 0.5,
+  br: 5,
+  bu: 6,
+  cu: 2,
+  ec: 3,
+  fb: 2,
   fu: 0.6,
-  hc: 1.2,
-  op: 1.2,
-  pb: 2.4,
-  rb: 1.2,
-  sp: 1.2,
-  wr: 2.4,
-  bb: 3,
-  fb: 3,
+  hc: 4,
   i: 6,
+  ic: 1.15,
+  if: 1.15,
+  ih: 1.15,
+  im: 1.15,
   j: 6,
   jd: 9,
   jm: 6,
-  lg: 1.8,
-  lh: 6,
-  ma: 6,
-  pr: 3,
-  px: 6,
-  sa: 6,
-  sh: 6,
-  ur: 6,
-  ic: 1.38,
-  if: 1.38,
-  ih: 1.38,
-  im: 1.38,
-  bc: 0.6,
-  ec: 36,
-  lu: 0.6,
-  nr: 1.2,
   lc: 4.8,
-  pd: 6,
-  pt: 6,
+  lh: 6,
+  lu: 0.5,
+  ma: 6,
+  nr: 0.8,
+  pb: 1.2,
+  px: 5,
+  rb: 6,
+  sa: 12,
+  sh: 6,
   si: 6,
-  ps: 6,
+  sp: 1,
+  ur: 6,
+  wr: 0.8,
 };
 
-const CLOSE_OVERRIDES = {
-  ap: 60,
-  cu: 6,
+// 平今标准高于或低于开仓标准的品种。
+const TODAY_OVERRIDES = {
+  ap: 120,
+  cu: 4,
+  ic: 11.5,
+  if: 11.5,
+  ih: 11.5,
+  im: 11.5,
   j: 8.4,
+  jm: 18,
   lh: 12,
-  ic: 3.45,
-  if: 3.45,
-  ih: 3.45,
-  im: 3.45,
-  ec: 72,
-  ps: 15,
+  sf: 7.5,
+  sm: 7.5,
 };
+
+// 官方表明确写“平今免收”的品种。
+const ZERO_TODAY = new Set([
+  "au",
+  "bc",
+  "cf",
+  "cy",
+  "fu",
+  "lc",
+  "nr",
+  "pb",
+  "ru",
+  "sc",
+  "si",
+  "sp",
+  "sr",
+  "ss",
+  "t",
+  "ta",
+  "tf",
+  "tl",
+  "ts",
+  "wr",
+  "zn",
+]);
 
 export function getFeeRule(instrument) {
+  if (FEE_MISSING.has(instrument.id)) {
+    return {
+      type: "fixed",
+      open: 0,
+      close: 0,
+      closeToday: 0,
+      missing: true,
+      unit: "元/手",
+      provider: FEE_PROVIDER,
+      asOf: FEE_AS_OF,
+    };
+  }
+
   const fixed = FIXED[instrument.id];
   if (Number.isFinite(fixed)) {
     return {
       type: "fixed",
       open: fixed,
       close: fixed,
-      closeToday: CLOSE_OVERRIDES[instrument.id] ?? fixed,
+      closeToday: TODAY_OVERRIDES[instrument.id] ?? (ZERO_TODAY.has(instrument.id) ? 0 : fixed),
       unit: "元/手",
+      provider: FEE_PROVIDER,
       asOf: FEE_AS_OF,
     };
   }
 
   const rate = RATE[instrument.id];
   if (Number.isFinite(rate)) {
+    const today = TODAY_OVERRIDES[instrument.id] ?? (ZERO_TODAY.has(instrument.id) ? 0 : rate);
     return {
       type: "rate",
       open: rate / 10000,
       close: rate / 10000,
-      closeToday: (CLOSE_OVERRIDES[instrument.id] ?? rate) / 10000,
+      closeToday: today / 10000,
       rateTenThousandths: rate,
       unit: "成交额比例",
+      provider: FEE_PROVIDER,
       asOf: FEE_AS_OF,
     };
   }
@@ -147,7 +189,9 @@ export function getFeeRule(instrument) {
     open: 0,
     close: 0,
     closeToday: 0,
+    missing: true,
     unit: "元/手",
+    provider: FEE_PROVIDER,
     asOf: FEE_AS_OF,
   };
 }
