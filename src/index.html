@@ -168,7 +168,7 @@
                   <span id="selected-note">1 手 = 10 吨</span>
                 </div>
                 <div class="selection-tags">
-                  <span class="tag-primary" id="selected-contract">主力合约</span>
+                  <span class="tag-primary" id="selected-contract" title="实时行情读取主连，主力换月会自动跟随">主力合约 · 自动跟随</span>
                   <span id="selected-unit">10 吨/手</span>
                   <span id="selected-quote">元/吨</span>
                 </div>
@@ -589,7 +589,7 @@
           <time datetime="2026-10-12">2026-10-12</time>），会随行情和合约月份调整。实际标准请以开户期货公司为准。
           交易所费用参考 <a href="http://openctp.cn/fees.html" target="_blank" rel="noopener">OpenCTP</a> 公开数据（数据基准日 <time datetime="2026-11-02">2026-11-02</time>）；期货公司佣金采用<a href="https://m.hicend.com.cn/h5/CommonArticleDetail/11493" target="_blank" rel="noopener">海证期货官网公司标准</a>（数据基准日 <time datetime="2024-04-22">2024-04-22</time>，含代缴交易所手续费）。页面按“海证公司标准 − 交易所费用”拆分佣金，避免重复计算；平今免收显示“无”，未公布项目显示“未公布”。
           活动性快照取 OpenCTP 2026-11-02 持仓量最大的合约；成交量优先使用实时行情，缺失时显示“—”。沉淀资金按“持仓量 × 参考价 × 合约乘数 × 保证金率”估算，并采用持仓量 2 万/10 万手、沉淀资金 2 亿/10 亿元、成交量 2 千/1 万手的严格阈值判断活跃度。
-          选择品种后会优先读取主力实时价；取价失败时自动使用最近参考价并在价格下方标注时间。少数无主力连续行情的品种需手动输入价格。
+          实时行情读取主连，主力换月后自动跟随；参考价和活动性快照为最近一次构建时数据。取价失败时使用最近参考价并在价格下方标注时间。少数无主力连续行情的品种需手动输入价格。
         </p>
       </section>
     </main>
