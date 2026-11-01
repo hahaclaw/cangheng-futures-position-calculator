@@ -10,14 +10,6 @@ export const ACTIVITY_AS_OF = "2026-11-02";
 
 // 长期成交与持仓都很低的品种；即使快照缺失也按不活跃提示。
 export const INACTIVE_PRODUCTS = new Set([
-  "jr",
-  "lr",
-  "pm",
-  "ri",
-  "wh",
-  "zc",
-  "wr",
-  "bb",
   "fb"
 ]);
 
@@ -31,7 +23,6 @@ const SNAPSHOT = {
   au: { openInterest: 181475, price: 831.68 },
   ag: { openInterest: 236445, price: 11532 },
   rb: { openInterest: 1806755, price: 3023 },
-  wr: { openInterest: 56, price: 3283 },
   ru: { openInterest: 132646, price: 19260 },
   br: { openInterest: 55255, price: 17155 },
   hc: { openInterest: 1779530, price: 3166 },
@@ -63,18 +54,12 @@ const SNAPSHOT = {
   jm: { openInterest: 422040, price: 1408 },
   i: { openInterest: 570172, price: 673.5 },
   fb: { openInterest: 6094, price: 1228.5 },
-  bb: { openInterest: 129, price: 145.6 },
   bz: { openInterest: 25368, price: 9323 },
   eb: { openInterest: 334351, price: 10675 },
   pg: { openInterest: 101927, price: 8074 },
   eg: { openInterest: 350357, price: 5423 },
   lh: { openInterest: 161040, price: 9510 },
   lg: { openInterest: 14182, price: 800 },
-  ri: { openInterest: 0, price: 2479 },
-  lr: { missing: true },
-  jr: { openInterest: 0, price: 2662 },
-  wh: { openInterest: 0, price: 3198 },
-  pm: { openInterest: 0, price: 3122 },
   cf: { openInterest: 643753, price: 15275 },
   cy: { openInterest: 14106, price: 21345 },
   sr: { openInterest: 586679, price: 5245 },
@@ -96,7 +81,6 @@ const SNAPSHOT = {
   pf: { openInterest: 166058, price: 8712 },
   cj: { openInterest: 210803, price: 6175 },
   pk: { openInterest: 161332, price: 7886 },
-  zc: { openInterest: 0, price: 801.4 },
   if: { openInterest: 182758, price: 4088.2 },
   ih: { openInterest: 75788, price: 2719 },
   ic: { openInterest: 187660, price: 6818.8 },

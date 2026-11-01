@@ -15,7 +15,7 @@ test("海证期货佣金规则覆盖全部品种，未公布的单独标记", ()
   assert.equal(FEE_AS_OF, "2024-04-22");
   assert.equal(FEE_PROVIDER, "海证期货");
   assert.equal(FEE_INCLUDES_EXCHANGE, true);
-  assert.equal(INSTRUMENTS.length, 88);
+  assert.equal(INSTRUMENTS.length, 80);
   assert.equal(FEE_MISSING.size, 9);
 
   for (const instrument of INSTRUMENTS) {

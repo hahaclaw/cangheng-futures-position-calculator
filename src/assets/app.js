@@ -104,6 +104,7 @@ const dom = {
   tbody: $("#instrument-tbody"),
   tableEmpty: $("#table-empty"),
   libraryCount: $("#library-count"),
+  instrumentCount: $("#instrument-count"),
   toast: $("#toast"),
   year: $("#year"),
 };
@@ -974,6 +975,7 @@ function bindEvents() {
 function init() {
   if (!state.instrument) throw new Error("默认品种数据缺失");
   updateSelectionUI(state.instrument);
+  dom.instrumentCount.textContent = String(INSTRUMENTS.length);
   dom.year.textContent = String(new Date().getFullYear());
   bindEvents();
   initClearButtons();

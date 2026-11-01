@@ -14,11 +14,17 @@ import {
   searchInstruments,
 } from "../src/assets/instruments.js";
 
-test("品种库覆盖 88 个品种，且代码不重复", () => {
-  assert.equal(INSTRUMENTS.length, 88);
+test("品种库覆盖 80 个品种，且代码不重复", () => {
+  assert.equal(INSTRUMENTS.length, 80);
   const codes = INSTRUMENTS.map((item) => item.code);
   assert.equal(new Set(codes).size, codes.length);
   assert.equal(new Set(INSTRUMENTS.map((item) => item.id)).size, INSTRUMENTS.length);
+});
+
+test("停牌或无成交品种已从备选池删除", () => {
+  for (const id of ["bb", "pm", "wr", "zc", "jr", "lr", "ri", "wh"]) {
+    assert.equal(getInstrument(id), null, `${id} 仍在品种库中`);
+  }
 });
 
 test("每个品种都有完整的合约与保证金字段", () => {

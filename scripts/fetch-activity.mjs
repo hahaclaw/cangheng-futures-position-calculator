@@ -3,7 +3,7 @@ import { INSTRUMENTS } from "../src/assets/instruments.js";
 import { REFERENCE_PRICES } from "../src/assets/reference-prices.js";
 
 const SOURCE = "http://openctp.cn/fees.html";
-const INACTIVE = ["jr", "lr", "pm", "ri", "wh", "zc", "wr", "bb", "fb"];
+const INACTIVE = ["fb"];
 
 async function fetchHtml() {
   for (let attempt = 1; attempt <= 3; attempt += 1) {

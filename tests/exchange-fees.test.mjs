@@ -10,20 +10,14 @@ import {
 
 test("交易所费用规则覆盖全部可交易品种", () => {
   assert.equal(EXCHANGE_FEE_AS_OF, "2026-11-02");
-  assert.equal(INSTRUMENTS.length, 88);
-  let covered = 0;
+  assert.equal(INSTRUMENTS.length, 80);
   for (const instrument of INSTRUMENTS) {
     const rule = getExchangeFeeRule(instrument);
-    if (rule.missing) {
-      assert.equal(instrument.id, "lr");
-      continue;
-    }
-    covered += 1;
+    assert.ok(!rule.missing, `${instrument.code} 缺少交易所费用`);
     assert.ok(rule.open, `${instrument.code} 开仓费用缺失`);
     assert.ok(rule.close, `${instrument.code} 平仓费用缺失`);
     assert.ok(rule.closeToday, `${instrument.code} 平今费用缺失`);
   }
-  assert.equal(covered, 87);
 });
 
 test("固定交易所费用", () => {
@@ -47,8 +41,8 @@ test("比例交易所费用", () => {
   assert.ok(Math.abs(exchangeFeeForLot(index, 1_200_000) - 27.6) < 1e-9);
 });
 
-test("未公布交易所费用的品种", () => {
-  const rule = getExchangeFeeRule(getInstrument("lr"));
+test("未收录品种返回未公布", () => {
+  const rule = getExchangeFeeRule({ id: "not-listed" });
   assert.equal(rule.missing, true);
   assert.equal(exchangeFeeForLot(rule, 100_000), 0);
 });

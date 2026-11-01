@@ -60,12 +60,6 @@ export const REFERENCE_PRICES = {
     "quoteCode": "rbm",
     "exchange": "SHFE"
   },
-  "wr": {
-    "price": 3376,
-    "quoteName": "线材主连",
-    "quoteCode": "wrm",
-    "exchange": "SHFE"
-  },
   "ru": {
     "price": 19635,
     "quoteName": "橡胶主连",
@@ -250,12 +244,6 @@ export const REFERENCE_PRICES = {
     "price": 1240,
     "quoteName": "纤维板主连",
     "quoteCode": "fbm",
-    "exchange": "DCE"
-  },
-  "bb": {
-    "price": 147.2,
-    "quoteName": "胶合板主连",
-    "quoteCode": "bbm",
     "exchange": "DCE"
   },
   "bz": {
