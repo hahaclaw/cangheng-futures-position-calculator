@@ -51,48 +51,6 @@
     </header>
 
     <main id="top">
-      <section class="hero">
-        <div class="hero-grid" aria-hidden="true"></div>
-        <div class="hero-inner">
-          <div class="hero-copy">
-            <p class="eyebrow reveal">
-              <span class="eyebrow-dot"></span>
-              中国境内期货 · 仓位计算工具
-            </p>
-            <h1 class="reveal delay-1">先算风险，<span>再算手数。</span></h1>
-            <p class="hero-lede reveal delay-2">
-              输入文华财经里的交易标的，自动识别交易单位与保证金，再按账户余额和单笔风险预算，给出这单该开几手。
-            </p>
-            <div class="hero-actions reveal delay-3">
-              <a class="button button-primary" href="#calculator">
-                开始计算
-                <span aria-hidden="true">→</span>
-              </a>
-              <a class="button button-quiet" href="#method">看看怎么算的</a>
-            </div>
-            <dl class="hero-stats reveal delay-4">
-              <div>
-                <dt id="instrument-count">80</dt>
-                <dd>境内期货品种</dd>
-              </div>
-              <div>
-                <dt>6</dt>
-                <dd>期货交易所</dd>
-              </div>
-              <div>
-                <dt>2%</dt>
-                <dd>默认单笔风险</dd>
-              </div>
-            </dl>
-          </div>
-
-        </div>
-        <div class="hero-marquee" aria-hidden="true">
-          <span>TRADE THE PLAN</span><i></i><span>NOT THE FEELING</span><i></i>
-          <span>RISK FIRST</span><i></i><span>仓位有据</span>
-        </div>
-      </section>
-
       <section class="calculator-section" id="calculator">
         <div class="section-heading">
           <div>
@@ -591,6 +549,48 @@
           活动性快照取 OpenCTP 2026-11-02 持仓量最大的合约；成交量优先使用实时行情，缺失时显示“—”。沉淀资金按“持仓量 × 参考价 × 合约乘数 × 保证金率”估算，并采用持仓量 2 万/10 万手、沉淀资金 2 亿/10 亿元、成交量 2 千/1 万手的严格阈值判断活跃度。
           实时行情读取主连，主力换月后自动跟随；参考价和活动性快照每个交易日 08:30 自动刷新。取价失败时使用最近参考价并在价格下方标注时间。少数无主力连续行情的品种需手动输入价格。
         </p>
+      </section>
+
+      <section class="hero">
+        <div class="hero-grid" aria-hidden="true"></div>
+        <div class="hero-inner">
+          <div class="hero-copy">
+            <p class="eyebrow reveal">
+              <span class="eyebrow-dot"></span>
+              中国境内期货 · 仓位计算工具
+            </p>
+            <h1 class="reveal delay-1">先算风险，<span>再算手数。</span></h1>
+            <p class="hero-lede reveal delay-2">
+              输入文华财经里的交易标的，自动识别交易单位与保证金，再按账户余额和单笔风险预算，给出这单该开几手。
+            </p>
+            <div class="hero-actions reveal delay-3">
+              <a class="button button-primary" href="#calculator">
+                开始计算
+                <span aria-hidden="true">→</span>
+              </a>
+              <a class="button button-quiet" href="#method">看看怎么算的</a>
+            </div>
+            <dl class="hero-stats reveal delay-4">
+              <div>
+                <dt id="instrument-count">80</dt>
+                <dd>境内期货品种</dd>
+              </div>
+              <div>
+                <dt>6</dt>
+                <dd>期货交易所</dd>
+              </div>
+              <div>
+                <dt>2%</dt>
+                <dd>默认单笔风险</dd>
+              </div>
+            </dl>
+          </div>
+
+        </div>
+        <div class="hero-marquee" aria-hidden="true">
+          <span>TRADE THE PLAN</span><i></i><span>NOT THE FEELING</span><i></i>
+          <span>RISK FIRST</span><i></i><span>仓位有据</span>
+        </div>
       </section>
     </main>
 
