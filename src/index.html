@@ -183,7 +183,7 @@
                   <input id="margin-rate" name="marginRate" type="number" inputmode="decimal" min="0" max="100" step="0.5" value="10" />
                   <span class="input-suffix">%</span>
                 </div>
-                <span class="field-help">合约价值 × 保证金率 = 一手保证金，不是手续费；默认值请按期货公司标准调整</span>
+                <span class="field-help">合约价值 × 保证金率 = 一手保证金，不是手续费；默认取该品种查询值，可按期货公司标准调整</span>
               </div>
             </div>
 
@@ -230,7 +230,7 @@
                     min="0.01"
                     max="9.99"
                     step="0.01"
-                    value="2"
+                    value="0.35"
                     aria-label="单笔风险百分比"
                   />
                   <button
@@ -244,7 +244,7 @@
                   <span>%</span>
                 </div>
               </div>
-              <input id="risk" name="riskPct" type="range" min="0.01" max="9.99" step="0.01" value="2" />
+              <input id="risk" name="riskPct" type="range" min="0.01" max="9.99" step="0.01" value="0.35" />
               <div class="range-labels" aria-hidden="true">
                 <span>0.01%</span><span>3%</span><span>6%</span><span>9.99%</span>
               </div>
@@ -323,10 +323,10 @@
             <div class="result-main" id="result-main">
               <p class="result-label">按风险公式可开</p>
               <div class="result-number">
-                <strong id="result-lots">5</strong>
+                <strong id="result-lots">0</strong>
                 <span id="result-unit">手</span>
               </div>
-              <p class="result-summary" id="result-summary">按 2% 风险公式，豆粕主力可开 5 手。</p>
+              <p class="result-summary" id="result-summary">按 0.35% 风险公式，豆粕主力可开 0 手。</p>
             </div>
 
             <div class="result-cost">
@@ -387,7 +387,7 @@
             <dl class="result-metrics">
               <div>
                 <dt>风险预算</dt>
-                <dd id="metric-risk-budget">¥1,000</dd>
+                <dd id="metric-risk-budget">¥175</dd>
               </div>
               <div>
                 <dt>每手风险</dt>
@@ -424,7 +424,7 @@
               </div>
               <div class="formula-line">
                 <span>风险预算</span>
-                <code id="formula-risk">50,000 × 2% = ¥1,000</code>
+                <code id="formula-risk">50,000 × 0.35% = ¥175</code>
               </div>
               <div class="formula-line">
                 <span>每手风险</span>
@@ -432,7 +432,7 @@
               </div>
               <div class="formula-line formula-line-final">
                 <span>公式手数</span>
-                <code id="formula-final">¥1,000 ÷ ¥200 = 5 手</code>
+                <code id="formula-final">¥175 ÷ ¥200 = 0 手</code>
               </div>
             </div>
 
@@ -440,7 +440,7 @@
 
             <div class="result-foot">
               <span>保证金手数上限 <b id="metric-margin-lots">15 手</b></span>
-              <span>风险手数上限 <b id="metric-risk-lots">5 手</b></span>
+              <span>风险手数上限 <b id="metric-risk-lots">0 手</b></span>
             </div>
           </aside>
         </div>
@@ -616,7 +616,7 @@
     <div class="mobile-result-bar" id="mobile-result-bar" aria-live="polite">
       <div class="mobile-result-metric">
         <span>公式手数</span>
-        <strong id="mobile-result-lots">5 手</strong>
+        <strong id="mobile-result-lots">0 手</strong>
       </div>
       <div class="mobile-result-metric">
         <span>一手开仓费用</span>

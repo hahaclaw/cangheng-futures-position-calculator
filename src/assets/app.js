@@ -205,6 +205,15 @@ function updateSessionUI(instrument) {
   )}`;
 }
 
+function applySuggestedRisk({ notify = false } = {}) {
+  const value = Number(state.suggestedRiskPct);
+  if (!(value > 0)) return;
+  const text = value.toFixed(2);
+  dom.risk.value = text;
+  dom.riskNumber.value = text;
+  if (notify) toast(`已套用小时级最佳单笔风险 ${text}%`);
+}
+
 function refreshClearButtons() {
   $$(".input-shell").forEach((shell) => {
     const input = shell.querySelector("input");
@@ -283,6 +292,7 @@ function updateSelectionUI(instrument) {
   dom.multiplierValue.textContent = number(instrument.multiplier);
   dom.search.placeholder = `已选 ${instrument.name} ${instrument.code} 主力 · 输入名称可更换`;
   updateSessionUI(instrument);
+  applySuggestedRisk();
 }
 
 function setQuoteStatus(text, kind = "") {
@@ -940,11 +950,8 @@ function bindEvents() {
 
   dom.quoteButton.addEventListener("click", getQuote);
   dom.applySessionRisk.addEventListener("click", () => {
-    const value = Number(state.suggestedRiskPct);
-    if (!(value > 0)) return;
-    dom.riskNumber.value = value.toFixed(2);
+    applySuggestedRisk({ notify: true });
     update();
-    toast(`已套用小时级最佳单笔风险 ${value.toFixed(2)}%`);
   });
   dom.copy.addEventListener("click", copyResult);
   dom.mobileResultView.addEventListener("click", () => {
@@ -979,6 +986,7 @@ function bindEvents() {
 
 function init() {
   if (!state.instrument) throw new Error("默认品种数据缺失");
+  dom.margin.value = String(state.instrument.marginPct);
   updateSelectionUI(state.instrument);
   dom.instrumentCount.textContent = String(INSTRUMENTS.length);
   dom.year.textContent = String(new Date().getFullYear());
