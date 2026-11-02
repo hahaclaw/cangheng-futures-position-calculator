@@ -7,12 +7,15 @@
  *
  * 手续费分两种：固定金额（元/手）或成交额比例（万分之几）。
  * 表中“平今免收”记为 0，页面显示“无”；“开平减半”按开仓标准的一半计算。
+ * 页面按（公司标准 − 交易所费用）× 6 折计算实际佣金。
  * 实际佣金因客户协商、合约月份和交易所调整而异，页面仅作参考。
  */
 
 export const FEE_PROVIDER = "海证期货";
 export const FEE_AS_OF = "2024-04-22";
 export const FEE_INCLUDES_EXCHANGE = true;
+export const FEE_DISCOUNT = 0.6;
+export const FEE_DISCOUNT_LABEL = "6折";
 
 // 海证官网 2024 标准未单列这些新品种，页面显示“未公布”。
 export const FEE_MISSING = new Set(["ad", "op", "pr", "pl", "lg", "bz", "ps", "pd", "pt"]);
@@ -200,4 +203,10 @@ export function feeForLot(rule, contractValue, kind = "open") {
   if (!Number.isFinite(contractValue) || contractValue <= 0) return 0;
   const value = rule[kind] ?? 0;
   return rule.type === "rate" ? contractValue * value : value;
+}
+
+/** 海证公司标准扣除交易所费用后，按折扣计算实际佣金。 */
+export function commissionForLot(companyFee, exchangeFee, discount = FEE_DISCOUNT) {
+  const commission = Math.max(Number(companyFee) - Number(exchangeFee), 0);
+  return commission * discount;
 }

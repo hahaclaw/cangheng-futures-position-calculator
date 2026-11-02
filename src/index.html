@@ -332,9 +332,9 @@
             <div class="result-cost">
               <div class="result-cost-main">
                 <span>主力合约一手开仓费用</span>
-                <strong id="result-total-cost">¥3,257.50</strong>
+                <strong id="result-total-cost">¥3,255.10</strong>
               </div>
-              <small id="result-cost-note">保证金 ¥3,250 + 交易所费用 ¥1.50 + 海证佣金 ¥6.00</small>
+              <small id="result-cost-note">保证金 ¥3,250 + 交易所费用 ¥1.50 + 海证佣金（6折）¥3.60</small>
               <dl class="result-cost-lines">
                 <div>
                   <dt>一手标的价值</dt>
@@ -365,23 +365,23 @@
               </dl>
               <div class="fee-head">
                 <span>期货公司佣金</span>
-                <small>海证期货</small>
+                <small>海证期货 · 6折</small>
               </div>
               <dl class="result-fee-lines">
                 <div>
                   <dt>开仓佣金</dt>
-                  <dd id="result-fee-per-lot">¥6.00</dd>
+                  <dd id="result-fee-per-lot">¥3.60</dd>
                 </div>
                 <div>
                   <dt>平仓佣金</dt>
-                  <dd id="result-fee-close">¥6.00</dd>
+                  <dd id="result-fee-close">¥3.60</dd>
                 </div>
                 <div>
                   <dt>平今佣金</dt>
-                  <dd id="result-fee-close-today">¥6.00</dd>
+                  <dd id="result-fee-close-today">¥3.60</dd>
                 </div>
               </dl>
-              <small class="fee-source" id="fee-source">交易所费用 2026-11-02 · 海证佣金 2024-04-22</small>
+              <small class="fee-source" id="fee-source">交易所费用 2026-11-02 · 海证佣金 6折（2024-04-22 标准）</small>
             </div>
 
             <dl class="result-metrics">
@@ -545,7 +545,7 @@
         <p class="data-note">
           合约单位与报价单位依据交易所合约规则；保证金率为期货公司公示口径的参考值（数据基准日
           <time datetime="2026-10-12">2026-10-12</time>），会随行情和合约月份调整。实际标准请以开户期货公司为准。
-          交易所费用参考 <a href="http://openctp.cn/fees.html" target="_blank" rel="noopener">OpenCTP</a> 公开数据（数据基准日 <time datetime="2026-11-02">2026-11-02</time>）；期货公司佣金采用<a href="https://m.hicend.com.cn/h5/CommonArticleDetail/11493" target="_blank" rel="noopener">海证期货官网公司标准</a>（数据基准日 <time datetime="2024-04-22">2024-04-22</time>，含代缴交易所手续费）。页面按“海证公司标准 − 交易所费用”拆分佣金，避免重复计算；平今免收显示“无”，未公布项目显示“未公布”。
+          交易所费用参考 <a href="http://openctp.cn/fees.html" target="_blank" rel="noopener">OpenCTP</a> 公开数据（数据基准日 <time datetime="2026-11-02">2026-11-02</time>）；期货公司佣金采用<a href="https://m.hicend.com.cn/h5/CommonArticleDetail/11493" target="_blank" rel="noopener">海证期货官网公司标准</a>（数据基准日 <time datetime="2024-04-22">2024-04-22</time>，含代缴交易所手续费）。页面按“（海证公司标准 − 交易所费用）× 6 折”计算实际佣金，避免重复计算；平今免收显示“无”，未公布项目显示“未公布”。
           活动性快照取 OpenCTP 2026-11-02 持仓量最大的合约；成交量优先使用实时行情，缺失时显示“—”。沉淀资金按“持仓量 × 参考价 × 合约乘数 × 保证金率”估算，并采用持仓量 2 万/10 万手、沉淀资金 2 亿/10 亿元、成交量 2 千/1 万手的严格阈值判断活跃度。
           实时行情读取主连，主力换月后自动跟随；参考价和活动性快照每个交易日 08:30 自动刷新。取价失败时使用最近参考价并在价格下方标注时间。少数无主力连续行情的品种需手动输入价格。
         </p>
@@ -620,7 +620,7 @@
       </div>
       <div class="mobile-result-metric">
         <span>一手开仓费用</span>
-        <strong id="mobile-result-margin">¥3,257.50</strong>
+        <strong id="mobile-result-margin">¥3,255.10</strong>
       </div>
       <button class="mobile-result-view" id="mobile-result-view" type="button">结果详情</button>
     </div>

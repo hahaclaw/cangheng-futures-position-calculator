@@ -4,9 +4,11 @@ import test from "node:test";
 import { INSTRUMENTS, getInstrument } from "../src/assets/instruments.js";
 import {
   FEE_AS_OF,
+  FEE_DISCOUNT,
   FEE_INCLUDES_EXCHANGE,
   FEE_MISSING,
   FEE_PROVIDER,
+  commissionForLot,
   feeForLot,
   getFeeRule,
 } from "../src/assets/fees.js";
@@ -87,4 +89,11 @@ test("官网未公布的新品种显示未公布", () => {
     assert.equal(feeForLot(rule, 100_000, "close"), 0);
     assert.equal(feeForLot(rule, 100_000, "closeToday"), 0);
   }
+});
+
+test("海证佣金按 6 折计算", () => {
+  assert.equal(FEE_DISCOUNT, 0.6);
+  assert.ok(Math.abs(commissionForLot(7.5, 1.5) - 3.6) < 1e-9);
+  assert.ok(Math.abs(commissionForLot(30, 5) - 15) < 1e-9);
+  assert.equal(commissionForLot(5, 10), 0);
 });
